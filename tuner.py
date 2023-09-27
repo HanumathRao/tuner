@@ -51,22 +51,29 @@ def total_cost(steps) -> float:
     return sum(float(value[2]) for value in steps)
 
 def get_cost(sql) -> float:
-    connection = get_connection(autocommit=True)
-    cursor = connection.cursor()
-    cursor.execute("explain format=verbose " + sql)
-    result = cursor.fetchall()
-    return total_cost(result)
+    try:
+        connection = get_connection(autocommit=True)
+        cursor = connection.cursor()
+        cursor.execute("explain format=verbose " + sql)
+        result = cursor.fetchall()
+        return total_cost(result)
+    except Exception as error:
+        #print(error)
+        return -1.0
 
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print ("\n ----------------- results -------------------- \n")
 
 for i in range(1, 19):
+    if i == 15:
+        continue
     sql = querymap[i]
     for rw in rewrites:
         prompt_value="### MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
         time.sleep(3)
         response = openai.Completion.create(
                 model="text-davinci-003",
+                #model="text-davinci-002",
                 prompt=prompt_value,
                 temperature=0,
                 max_tokens=256,
@@ -75,7 +82,11 @@ for i in range(1, 19):
                 presence_penalty=0.0,
                 stop=["#", ";"]
         )
-        new_sql = (response.choices[0].text).replace('\n', '')
-        print ("original  SQL = ",sql, " with cost = ", get_cost(sql), "\nrewritten SQL = ",new_sql, " with cost = ", get_cost(new_sql))
+        new_sql = (response.choices[0].text).replace('\n', ' ')
+        original_cost = get_cost(sql)
+        new_cost = get_cost(new_sql)
+        if new_cost > 0 and new_cost < original_cost:
+            #print("QUERY =", i, " ORIGINAL COST = ", original_cost, " NEW COST = ", new_cost, " PROMPT : ", rw)
+            print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
 print ("\n ---------------------------------------------- \n")
 
