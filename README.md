@@ -12,5 +12,5 @@ mysql test --local-infile=1  --host 127.0.0.1 --port 4000 -u root < ~/tuner/tpch
 
 ## run the tuner
 ```
-python3 tuner.py | tee /tmp/tuner.out
+python3 -u tuner.py | tee /tmp/tuner.out
 ```
