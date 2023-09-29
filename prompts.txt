@@ -1,7 +1,7 @@
-Rewrite the query by pushing down the single table predicates down to single table scan
+Rewrite the following query by pushing down the single table predicates down to single table scan
 Apply multi phase group by split optimization for the following query
 Apply constant folding optimization for the following query.
 Apply distinct pushdown optimization for the following query
-Apply outer join to inner join conversion optimization
-Convert agg with filter to agg with case clause 
-Convert agg distinct to agg on a group by derived table
+Apply outer join to inner join conversion optimization for the following query 
+Convert aggregate with filter to aggregate with case clause for the following query
+Convert aggregate distinct to aggregate on a group by derived table for the following query
