@@ -296,6 +296,45 @@ order by
 
 
  ---------------------------------------------- 
+// [HANU]: analysis the query is made more complex by adding a join,however, it seems like a semantically correct rewrite.
+/*
+
+rewritten query:
+
+CREATE TEMPORARY TABLE temp_table AS
+  SELECT
+  l_returnflag,
+         l_linestatus,
+         SUM(l_quantity)                                           AS sum_qty,
+         SUM(l_extendedprice)                                      AS sum_base_price ,
+         SUM(l_extendedprice * ( 1 - l_discount ))                 AS sum_disc_price,
+         SUM(l_extendedprice * ( 1 - l_discount ) * ( 1 + l_tax )) AS sum_charge
+  FROM   lineitem
+  WHERE  l_shipdate <= Date_sub('1998-12-01', interval 108 day)
+  GROUP  BY l_returnflag,
+            l_linestatus;
+
+SELECT t.l_returnflag,
+       t.l_linestatus,
+       t.sum_qty,
+       t.sum_base_price,
+       t.sum_disc_price,
+       t.sum_charge,
+       Avg(l.l_quantity)      AS avg_qty,
+       Avg(l.l_extendedprice) AS avg_price,
+       Avg(l.l_discount)      AS avg_disc,
+       Count(*)               AS count_order
+FROM   temp_table t
+       join lineitem l
+         ON t.l_returnflag = l.l_returnflag
+            AND t.l_linestatus = l.l_linestatus
+WHERE  l.l_shipdate <= Date_sub('1998-12-01', interval 108 day)
+GROUP  BY t.l_returnflag,
+          t.l_linestatus
+ORDER  BY t.l_returnflag,
+          t.l_linestatus;
+
+*/
 
 response= {
   "id": "chatcmpl-83t6AAlflQc6tC0CX3VFA1ZtVcVyC",
