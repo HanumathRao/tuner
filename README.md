@@ -14,3 +14,11 @@ mysql test --local-infile=1  --host 127.0.0.1 --port 4000 -u root < ~/tuner/tpch
 ```
 python3 -u tuner.py | tee /tmp/tuner.out
 ```
+
+## python dependencies.
+Following modules needs to be installed for python
+
+```
+pip3 install mysql-connector-python
+pip3 install openai
+```
