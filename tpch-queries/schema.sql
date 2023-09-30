@@ -1,4 +1,9 @@
-CREATE TABLE `orders` (
+create database if not exists tuner_db;
+SET GLOBAL local_infile=1;
+
+use tuner_db;
+
+CREATE TABLE IF NOT EXISTS `orders` (
   `O_ORDERKEY` bigint(20) NOT NULL,
   `O_CUSTKEY` bigint(20) NOT NULL,
   `O_ORDERSTATUS` char(1) NOT NULL,
@@ -11,7 +16,7 @@ CREATE TABLE `orders` (
   PRIMARY KEY (`O_ORDERKEY`) /*T![clustered_index] CLUSTERED */
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ;
 
-CREATE TABLE `customer` (
+CREATE TABLE IF NOT EXISTS `customer` (
   `C_CUSTKEY` bigint(20) NOT NULL,
   `C_NAME` varchar(25) NOT NULL,
   `C_ADDRESS` varchar(40) NOT NULL,
@@ -23,7 +28,7 @@ CREATE TABLE `customer` (
   PRIMARY KEY (`C_CUSTKEY`) /*T![clustered_index] CLUSTERED */
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ;
 
-CREATE TABLE `lineitem` (
+CREATE TABLE IF NOT EXISTS `lineitem` (
   `L_ORDERKEY` bigint(20) NOT NULL,
   `L_PARTKEY` bigint(20) NOT NULL,
   `L_SUPPKEY` bigint(20) NOT NULL,
@@ -44,7 +49,7 @@ CREATE TABLE `lineitem` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
-CREATE TABLE `nation` (
+CREATE TABLE IF NOT EXISTS `nation` (
   `N_NATIONKEY` bigint(20) NOT NULL,
   `N_NAME` char(25) NOT NULL,
   `N_REGIONKEY` bigint(20) NOT NULL,
@@ -53,7 +58,7 @@ CREATE TABLE `nation` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
- CREATE TABLE `part` (
+ CREATE TABLE IF NOT EXISTS `part` (
   `P_PARTKEY` bigint(20) NOT NULL,
   `P_NAME` varchar(55) NOT NULL,
   `P_MFGR` char(25) NOT NULL,
@@ -66,7 +71,7 @@ CREATE TABLE `nation` (
   PRIMARY KEY (`P_PARTKEY`) /*T![clustered_index] CLUSTERED */
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `partsupp` (
+CREATE TABLE IF NOT EXISTS `partsupp` (
   `PS_PARTKEY` bigint(20) NOT NULL,
   `PS_SUPPKEY` bigint(20) NOT NULL,
   `PS_AVAILQTY` bigint(20) NOT NULL,
@@ -76,14 +81,14 @@ CREATE TABLE `partsupp` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
 
-CREATE TABLE `region` (
+CREATE TABLE IF NOT EXISTS `region` (
   `R_REGIONKEY` bigint(20) NOT NULL,
   `R_NAME` char(25) NOT NULL,
   `R_COMMENT` varchar(152) DEFAULT NULL,
   PRIMARY KEY (`R_REGIONKEY`) /*T![clustered_index] CLUSTERED */
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin;
 
-CREATE TABLE `supplier` (
+CREATE TABLE IF NOT EXISTS `supplier` (
   `S_SUPPKEY` bigint(20) NOT NULL,
   `S_NAME` char(25) NOT NULL,
   `S_ADDRESS` varchar(40) NOT NULL,
