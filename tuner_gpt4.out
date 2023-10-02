@@ -495,6 +495,8 @@ order by
 
  ---------------------------------------------- 
 
+// [HANU]: This query is already optimized no more optimizations done by gpt-4
+
 response= {
   "id": "chatcmpl-83t6Q3hcfRWvac2YriEmHqITmIRy7",
   "object": "chat.completion",
@@ -654,6 +656,8 @@ order by
 
  ---------------------------------------------- 
 
+// [HANU]: No optimization is done as this query doesn't contain the DISTINCT clause.
+
 response= {
   "id": "chatcmpl-83t6ZfoDPbOT5KH44AHd3cMxbvCSf",
   "object": "chat.completion",
@@ -812,6 +816,7 @@ order by
 
 
  ---------------------------------------------- 
+// [HANU]: No optimization done.
 
 response= {
   "id": "chatcmpl-83t6iosGBIElGKReMhH2iMaTsgDCQ",
@@ -972,6 +977,57 @@ order by
 
  ---------------------------------------------- 
 
+// [HANU]: rewrite is done by GPT-4. I don't think that it will perform better than original query.
+
+SELECT l_returnflag,
+       l_linestatus,
+       SUM(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_quantity
+             ELSE 0
+           END)   AS sum_qty,
+       SUM(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_extendedprice
+             ELSE 0
+           END)   AS sum_base_price,
+       SUM(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_extendedprice * ( 1 - l_discount )
+             ELSE 0
+           END)   AS sum_disc_price,
+       SUM(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_extendedprice * ( 1 - l_discount ) * ( 1 + l_tax )
+             ELSE 0
+           END)   AS sum_charge,
+       Avg(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_quantity
+             ELSE NULL
+           END)   AS avg_qty,
+       Avg(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_extendedprice
+             ELSE NULL
+           END)   AS avg_price,
+       Avg(CASE
+             WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+             l_discount
+             ELSE NULL
+           END)   AS avg_disc,
+       Count(CASE
+               WHEN l_shipdate <= Date_sub('1998-12-01', interval 108 day) THEN
+               1
+               ELSE NULL
+             END) AS count_order
+FROM   lineitem
+GROUP  BY l_returnflag,
+          l_linestatus
+ORDER  BY l_returnflag,
+          l_linestatus 
+
+
 response= {
   "id": "chatcmpl-83t6rJ8q2a66WcHdjmYKY02uu3WbC",
   "object": "chat.completion",
@@ -1130,6 +1186,43 @@ order by
 
 
  ---------------------------------------------- 
+
+// [HANU]: query rewrite is suggested by GPT-4
+
+SELECT l_returnflag,
+       l_linestatus,
+       SUM(sum_qty)        AS total_qty,
+       SUM(sum_base_price) AS total_base_price,
+       SUM(sum_disc_price) AS total_disc_price,
+       SUM(sum_charge)     AS total_charge,
+       Avg(avg_qty)        AS final_avg_qty,
+       Avg(avg_price)      AS final_avg_price,
+       Avg(avg_disc)       AS final_avg_disc,
+       SUM(count_order)    AS final_count_order
+FROM   (SELECT l_returnflag,
+               l_linestatus,
+               l_quantity                                           AS sum_qty,
+               l_extendedprice                                      AS
+               sum_base_price,
+               l_extendedprice * ( 1 - l_discount )                 AS
+               sum_disc_price,
+               l_extendedprice * ( 1 - l_discount ) * ( 1 + l_tax ) AS
+               sum_charge,
+               l_quantity                                           AS avg_qty,
+               l_extendedprice                                      AS avg_price
+               ,
+               l_discount
+               AS avg_disc,
+               1                                                    AS
+               count_order
+        FROM   lineitem
+        WHERE  l_shipdate <= Date_sub('1998-12-01', interval 108 day)) AS
+       derived_table
+GROUP  BY l_returnflag,
+          l_linestatus
+ORDER  BY l_returnflag,
+          l_linestatus; 
+
 
 response= {
   "id": "chatcmpl-83t7FAqRAenAkxwlPICGGaqcM9iWc",
@@ -1313,6 +1406,59 @@ limit 100;
 
  ---------------------------------------------- 
 
+// [HANU]: Query rewrite suggested by GPT-4
+
+SELECT s_acctbal,
+       s_name,
+       n_name,
+       p_partkey,
+       p_mfgr,
+       s_address,
+       s_phone,
+       s_comment
+FROM   (SELECT *
+        FROM   part
+        WHERE  p_size = 30
+               AND p_type LIKE '%STEEL') p,
+       (SELECT *
+        FROM   supplier
+        WHERE  s_nationkey IN (SELECT n_nationkey
+                               FROM   nation
+                               WHERE  n_regionkey IN (SELECT r_regionkey
+                                                      FROM   region
+                                                      WHERE  r_name = 'ASIA')))
+       s,
+       (SELECT *
+        FROM   partsupp
+        WHERE  ps_supplycost = (SELECT Min(ps_supplycost)
+                                FROM   partsupp,
+                                       supplier,
+                                       nation,
+                                       region
+                                WHERE  p_partkey = ps_partkey
+                                       AND s_suppkey = ps_suppkey
+                                       AND s_nationkey = n_nationkey
+                                       AND n_regionkey = r_regionkey
+                                       AND r_name = 'ASIA')) ps,
+       (SELECT *
+        FROM   nation
+        WHERE  n_regionkey IN (SELECT r_regionkey
+                               FROM   region
+                               WHERE  r_name = 'ASIA')) n,
+       (SELECT *
+        FROM   region
+        WHERE  r_name = 'ASIA') r
+WHERE  p_partkey = ps_partkey
+       AND s_suppkey = ps_suppkey
+       AND s_nationkey = n_nationkey
+       AND n_regionkey = r_regionkey
+ORDER  BY s_acctbal DESC,
+          n_name,
+          s_name,
+          p_partkey
+LIMIT  100; 
+
+
 response= {
   "id": "chatcmpl-83t7V1AdriPl07PWkRiRK9nSqHR5c",
   "object": "chat.completion",
@@ -1494,6 +1640,42 @@ limit 100;
 
 
  ---------------------------------------------- 
+
+// [HANU]: Query rewrite suggested by GPT-4
+
+SELECT s.s_acctbal,
+       s.s_name,
+       n.n_name,
+       p.p_partkey,
+       p.p_mfgr,
+       s.s_address,
+       s.s_phone,
+       s.s_comment
+FROM   part p
+       JOIN partsupp ps
+         ON p.p_partkey = ps.ps_partkey
+       JOIN (SELECT ps_partkey,
+                    Min(ps_supplycost) AS min_ps_supplycost
+             FROM   partsupp
+             GROUP  BY ps_partkey) min_ps
+         ON ps.ps_partkey = min_ps.ps_partkey
+            AND ps.ps_supplycost = min_ps.min_ps_supplycost
+       JOIN supplier s
+         ON s.s_suppkey = ps.ps_suppkey
+       JOIN nation n
+         ON s.s_nationkey = n.n_nationkey
+       JOIN region r
+         ON n.n_regionkey = r.r_regionkey
+WHERE  p.p_size = 30
+       AND p.p_type LIKE '%STEEL'
+       AND r.r_name = 'ASIA'
+ORDER  BY s.s_acctbal DESC,
+          n.n_name,
+          s.s_name,
+          p.p_partkey
+LIMIT  100; 
+
+
 
 response= {
   "id": "chatcmpl-83t7kYuANqCWfjTSeRmyx1T4vqekv",
@@ -1677,6 +1859,8 @@ limit 100;
 
  ---------------------------------------------- 
 
+// [HANU]: Query rewrite is not suggested by GPT-4
+
 response= {
   "id": "chatcmpl-83t860TnDIiFVOYAo1AMywK4ORvs7",
   "object": "chat.completion",
@@ -1858,6 +2042,9 @@ limit 100;
 
 
  ---------------------------------------------- 
+
+// [HANU]: Query Rewrite is not suggested by GPT-4
+
 
 response= {
   "id": "chatcmpl-83t8CHZG8KEADFF2uyVp0zlF4X1B3",
@@ -2041,6 +2228,8 @@ limit 100;
 
  ---------------------------------------------- 
 
+// [HANU]: Query rewrite is not suggested by GPT-4
+
 response= {
   "id": "chatcmpl-83t8O12WoNaUG1jdIY7LvudBGKlg9",
   "object": "chat.completion",
@@ -2222,6 +2411,8 @@ limit 100;
 
 
  ---------------------------------------------- 
+
+// [HANU]: Query rewrite is not suggested by GPT-4
 
 response= {
   "id": "chatcmpl-83t8XKDQaZqZy4EgUlrUjp3hGo9j0",
@@ -2405,6 +2596,49 @@ limit 100;
 
  ---------------------------------------------- 
 
+// [HANU]: Query Rewrite is suggested by GPT-4
+
+SELECT s.s_acctbal,
+       s.s_name,
+       n.n_name,
+       p.p_partkey,
+       p.p_mfgr,
+       s.s_address,
+       s.s_phone,
+       s.s_comment
+FROM   part p,
+       supplier s,
+       partsupp ps,
+       nation n,
+       region r,
+       (SELECT ps_partkey,
+               Min(ps_supplycost) AS min_supplycost
+        FROM   partsupp,
+               supplier,
+               nation,
+               region
+        WHERE  p_partkey = ps_partkey
+               AND s_suppkey = ps_suppkey
+               AND s_nationkey = n_nationkey
+               AND n_regionkey = r_regionkey
+               AND r_name = 'ASIA'
+        GROUP  BY ps_partkey) AS derived_table
+WHERE  p.p_partkey = ps.ps_partkey
+       AND s.s_suppkey = ps.ps_suppkey
+       AND p.p_size = 30
+       AND p.p_type LIKE '%STEEL'
+       AND s.s_nationkey = n.n_nationkey
+       AND n.n_regionkey = r.r_regionkey
+       AND r.r_name = 'ASIA'
+       AND ps.ps_supplycost = derived_table.min_supplycost
+       AND p.p_partkey = derived_table.ps_partkey
+ORDER  BY s.s_acctbal DESC,
+          n.n_name,
+          s.s_name,
+          p.p_partkey
+LIMIT  100; 
+
+
 response= {
   "id": "chatcmpl-83t8i0VkccxdvKFaBb28cG3bIxpOA",
   "object": "chat.completion",
@@ -2565,6 +2799,30 @@ limit 10;
 
 
  ---------------------------------------------- 
+// [HANU]: QR
+
+SELECT   l_orderkey,
+         Sum(l_extendedprice * (1 - l_discount)) AS revenue,
+         o_orderdate,
+         o_shippriority
+FROM     (
+                SELECT *
+                FROM   customer
+                WHERE  c_mktsegment = 'AUTOMO      BILE') AS customer,
+         (
+                SELECT *
+                FROM   orders
+                WHERE  o_orderdate < '1995-03-13') AS orders,
+         (
+                SELECT *
+                FROM   lineitem wher e l_shipdate > '1995-03-13') AS lineitem
+WHERE    c_custkey = o_custkey
+AND      l_orderkey = o_orderkey
+GROUP BY l_or derkey,
+         o_orderdate,
+         o_shippriority
+ORDER BY revenue DESC,
+         o_orderdate limit 10
 
 response= {
   "id": "chatcmpl-83t919I5NuSjRfhdT4gdj8MIOVKv7",
@@ -2726,6 +2984,32 @@ limit 10;
 
 
  ---------------------------------------------- 
+// [HANU]: QRW
+
+CREATE temporary TABLE temp_table ASSELECT   l_orderkey,
+         o_orderdate,
+         o_shippriority,
+         Sum(l_extendedprice * (1 - l_discount)) AS revenue
+FROM     customer
+JOIN     orders
+ON       c_custkey = o_custkey
+JOIN     lineitem
+ON       l_orderkey = o_orderkey
+WHERE    c_mktsegment = 'AUTOMOBILE'
+AND      o_orderdate < '1995-03-13'
+AND      l_shipdate > '1995-03-13'
+GROUP BY l_orderkey,
+         o_orderdate,
+         o_shippriority;
+
+SELECT   l_orderkey,
+         revenue,
+         o_orderdate,
+         o_shippriority
+FROM     temp_table
+ORDER BY revenue DESC,
+         o_orderdate limit 10;
+
 
 response= {
   "id": "chatcmpl-83t9Chc8HPsf8oJjz5NQZjQoNV78s",
@@ -2888,6 +3172,29 @@ limit 10;
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT l_orderkey,
+       Sum(l_extendedprice * ( 1 - l_discount )) AS revenue,
+       o_orderdate,
+       o_shippriority
+FROM   customer,
+       orders,
+       lineitem
+WHERE  c_mktsegment = 'AUTOMOBILE'
+       AND c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+       AND o_orderdate < '1995-03-13'
+       AND l_shipdate > '1995-03-13'
+GROUP  BY l_orderkey,
+          o_orderdate,
+          o_shippriority
+ORDER  BY revenue DESC,
+          o_orderdate
+LIMIT  10; 
+
+
+
 response= {
   "id": "chatcmpl-83t9SRTTkbV4mkw3vTZczxofHVP0h",
   "object": "chat.completion",
@@ -3048,6 +3355,31 @@ limit 10;
 
 
  ---------------------------------------------- 
+// [HANU]: QRW
+
+SELECT l_orderkey,
+       Sum(l_extendedprice * ( 1 - l_discount )) AS revenue,
+       o_orderdate,
+       o_shippriority
+FROM   (SELECT *
+        FROM   customer
+        WHERE  c_mktsegment = 'AUTOMOBILE') AS c,
+       (SELECT *
+        FROM   orders
+        WHERE  o_orderdate < '1995-03-13') AS o,
+       (SELECT *
+        FROM   lineitem
+        WHERE  l_shipdate > '1995-03-13') AS l
+WHERE  c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+GROUP  BY l_orderkey,
+          o_orderdate,
+          o_shippriority
+ORDER  BY revenue DESC,
+          o_orderdate
+LIMIT  10; 
+
+
 
 response= {
   "id": "chatcmpl-83t9eRllyj3OQhjOOS4aI2cLOBjZx",
@@ -3210,6 +3542,30 @@ limit 10;
 
  ---------------------------------------------- 
 
+// [HANU]: QRW
+
+
+SELECT l_orderkey,
+       Sum(l_extendedprice * ( 1 - l_discount )) AS revenue,
+       o_orderdate,
+       o_shippriority
+FROM   customer
+       JOIN orders
+         ON c_custkey = o_custkey
+       JOIN lineitem
+         ON l_orderkey = o_orderkey
+WHERE  c_mktsegment = 'AUTOMOBILE'
+       AND o_orderdate < '1995-03-13'
+       AND l_shipdate > '1995-03-13'
+GROUP  BY l_orderkey,
+          o_orderdate,
+          o_shippriority
+ORDER  BY revenue DESC,
+          o_orderdate
+LIMIT  10; 
+
+
+
 response= {
   "id": "chatcmpl-83t9qs9GfLIPUkhTKIflcKWLhNlAH",
   "object": "chat.completion",
@@ -3371,6 +3727,32 @@ limit 10;
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT l_orderkey,
+       Sum(CASE
+             WHEN c_mktsegment = 'AUTOMOBILE'
+                  AND c_custkey = o_custkey
+                  AND l_orderkey = o_orderkey
+                  AND o_orderdate < '1995-03-13'
+                  AND l_shipdate > '1995-03-13' THEN l_extendedprice *
+                                                     ( 1 - l_discount )
+             ELSE 0
+           end) AS revenue,
+       o_orderdate,
+       o_shippriority
+FROM   customer,
+       orders,
+       lineitem
+GROUP  BY l_orderkey,
+          o_orderdate,
+          o_shippriority
+ORDER  BY revenue DESC,
+          o_orderdate
+LIMIT  10; 
+
+
+
 response= {
   "id": "chatcmpl-83tA3N3pHqmB8RSk4SpKUSHErKKm7",
   "object": "chat.completion",
@@ -3531,6 +3913,35 @@ limit 10;
 
 
  ---------------------------------------------- 
+
+[HANU]: QRW
+
+SELECT derived.l_orderkey,
+       Sum(derived.l_extendedprice * ( 1 - derived.l_discount )) AS revenue,
+       derived.o_orderdate,
+       derived.o_shippriority
+FROM   (SELECT l_orderkey,
+               l_extendedprice,
+               l_discount,
+               o_orderdate,
+               o_shippriority
+        FROM   customer,
+               orders,
+               lineitem
+        WHERE  c_mktsegment = 'AUTOMOBILE'
+               AND c_custkey = o_custkey
+               AND l_orderkey = o_orderkey
+               AND o_orderdate < '1995-03-13'
+               AND l_shipdate > '1995-03-13') AS derived
+GROUP  BY derived.l_orderkey,
+          derived.o_orderdate,
+          derived.o_shippriority
+ORDER  BY revenue DESC,
+          derived.o_orderdate
+LIMIT  10; 
+
+
+
 
 response= {
   "id": "chatcmpl-83tADYPs3Jj0Znswg2si3Cc9TPas4",
