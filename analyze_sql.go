@@ -8,6 +8,7 @@ import (
 	_ "github.com/pingcap/tidb/parser/test_driver"
 	_ "github.com/pingcap/tidb/types/parser_driver"
 )
+import "C"
 
 type typeAnalysis struct {
 	typesList []string
@@ -61,13 +62,8 @@ func parse(sql string) (ast.StmtNode, error) {
 	return stmtNodes[0], nil
 }
 
-func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("usage: typeAnalysis 'SQL statement'")
-		return
-	}
-	sql := os.Args[1]
-
+//export analyze
+func analyze(sql string) {
 	astNode, err := parse(sql)
 	if err != nil {
 		fmt.Printf("parse error: %v\n", err.Error())
@@ -78,4 +74,18 @@ func main() {
 	fmt.Printf("tpyeList = ", tpyeList)
 
 	fmt.Println("\n Column Parse, Done!")
+}
+
+func hello() {
+	fmt.Println("Hello world!")
+}
+
+func main() {
+	if len(os.Args) != 2 {
+		fmt.Println("usage: typeAnalysis 'SQL statement'")
+		return
+	}
+	sql := os.Args[1]
+
+	analyze(sql)
 }

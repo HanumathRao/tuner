@@ -4,6 +4,8 @@ import uuid
 from typing import List
 import mysql.connector
 import time
+import ctypes
+
 from mysql.connector import connect, MySQLConnection
 from mysql.connector.cursor import MySQLCursor
 
@@ -65,33 +67,38 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 print ("\n ----------------- results -------------------- \n")
 
 
+def apply_rewrite(sql, rw):
+    sql = sql.replace('\n',' ')
+    lib = ctypes.CDLL('./analyze.so')  # Or hello.so if on Linux.
+    analyze = lib.analyze
+    analyze(sql, rw)
+    skip_gpt = True
+    prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
+    time.sleep(3)
+    message=[{"role": "user", "content": prompt_value}]
+    print ("\n ---------------------------------------------- \n")
+    #print ("prompt_value = ", prompt_value)
+    print ("\n ---------------------------------------------- \n")
+    if skip_gpt is True:
+        return
+    response = openai.ChatCompletion.create(
+        model="gpt-4",messages=message,temperature=0,max_tokens=1000
+    )
+    print ("\n ---------------------------------------------- \n")
+    print ("response=",response)
+    print ("\n ---------------------------------------------- \n")
+    #TODO: fix code below to extract new SQL if any
+    new_sql = (response.choices[0].message)
+    original_cost = get_cost(sql)
+    new_cost = get_cost(new_sql)
+    if new_cost > 0 and new_cost < original_cost:
+        #print("QUERY =", i, " ORIGINAL COST = ", original_cost, " NEW COST = ", new_cost, " PROMPT : ", rw)
+        print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
 
 for i in range(1, 19):
     if i == 15:
         continue
     sql = querymap[i]
+    print ("SQL = ", sql)
     for rw in rewrites:
-        prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
-        time.sleep(3)
-        message=[{"role": "user", "content": prompt_value}]
-        print ("\n ---------------------------------------------- \n")
-        print ("prompt_value = ", prompt_value)
-        print ("\n ---------------------------------------------- \n")
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=message,
-            temperature=0,
-            max_tokens=1000
-        )
-        print ("\n ---------------------------------------------- \n")
-        print ("response=",response)
-        print ("\n ---------------------------------------------- \n")
-        #TODO: fix code below to extract new SQL if any
-        new_sql = (response.choices[0].message)
-        original_cost = get_cost(sql)
-        new_cost = get_cost(new_sql)
-        if new_cost > 0 and new_cost < original_cost:
-            #print("QUERY =", i, " ORIGINAL COST = ", original_cost, " NEW COST = ", new_cost, " PROMPT : ", rw)
-            print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
-print ("\n ---------------------------------------------- \n")
-
+        apply_rewrite(sql, rw)
