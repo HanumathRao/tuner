@@ -15,7 +15,7 @@ type typeAnalysis struct {
 }
 
 func (v *typeAnalysis) analyzeTypes(node ast.Node) (string, bool)  {
-	switch node.(type) {
+	switch parse_node := node.(type) {
 	case *ast.BetweenExpr, *ast.BinaryOperationExpr:
 		return "Filter", true
 	case *ast.OrderByClause:
@@ -23,7 +23,9 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) (string, bool)  {
 	case *ast.GroupByClause:
 		return "GroupBy", true
 	case *ast.Join:
-		return "Join", true
+		if (parse_node.Right != nil) {
+			return "Join", true
+		}
 	case *ast.AggregateFuncExpr:
 		return "Aggregate", true
 	case *ast.HavingClause:
