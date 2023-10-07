@@ -7923,6 +7923,41 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+CREATE TEMPORARY TABLE temp_table AS
+  SELECT n1.n_name                            AS supp_nation,
+         n2.n_name                            AS cust_nation,
+         Year(l_shipdate)                     AS l_year,
+         l_extendedprice * ( 1 - l_discount ) AS volume
+  FROM   supplier,
+         lineitem,
+         orders,
+         customer,
+         nation n1,
+         nation n2
+  WHERE  s_suppkey = l_suppkey
+         AND o_orderkey = l_orderkey
+         AND c_custkey = o_custkey
+         AND s_nationkey = n1.n_nationkey
+         AND c_nationkey = n2.n_nationkey
+         AND ( ( n1.n_name = 'JAPAN'
+                 AND n2.n_name = 'INDIA' )
+                OR ( n1.n_name = 'INDIA'
+                     AND n2.n_name = 'JAPAN' ) )
+         AND l_shipdate BETWEEN '1995-01-01' AND '1996-12-31';
+
+SELECT supp_nation,
+       cust_nation,
+       l_year,
+       SUM(volume) AS revenue
+FROM   temp_table
+GROUP  BY supp_nation,
+          cust_nation,
+          l_year
+ORDER  BY supp_nation,
+          cust_nation,
+          l_year; 
 
 response= {
   "id": "chatcmpl-83tEiaqYGiESHjh8MAkDvR9pBi6Bj",
@@ -8100,6 +8135,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tF0UAJnk0jyt4zOzEUK4UKB3HEQ",
@@ -8277,6 +8313,40 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT supp_nation,
+       cust_nation,
+       l_year,
+       Sum(volume) AS revenue
+FROM   (SELECT n1.n_name                                AS supp_nation,
+               n2.n_name                                AS cust_nation,
+               Extract(year FROM l.l_shipdate)          AS l_year,
+               l.l_extendedprice * ( 1 - l.l_discount ) AS volume
+        FROM   supplier s
+               JOIN lineitem l
+                 ON s.s_suppkey = l.l_suppkey
+               JOIN orders o
+                 ON o.o_orderkey = l.l_orderkey
+               JOIN customer c
+                 ON c.c_custkey = o.o_custkey
+               JOIN nation n1
+                 ON s.s_nationkey = n1.n_nationkey
+               JOIN nation n2
+                 ON c.c_nationkey = n2.n_nationkey
+        WHERE  ( ( n1.n_name = 'JAPAN'
+                   AND n2.n_name = 'INDIA' )
+                  OR ( n1.n_name = 'INDIA'
+                       AND n2.n_name = 'JAPAN' ) )
+               AND l.l_shipdate BETWEEN '1995-01-01' AND '1996-12-31') AS
+       shipping
+GROUP  BY supp_nation,
+          cust_nation,
+          l_year
+ORDER  BY supp_nation,
+          cust_nation,
+          l_year; 
+
 
 response= {
   "id": "chatcmpl-83tF6jW6kdVG6z0axKaA40iOnXFMC",
@@ -8455,6 +8525,8 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: NO_QRW
+
 response= {
   "id": "chatcmpl-83tFPinvRJQu3qLsdPZRpT6Bt8bhS",
   "object": "chat.completion",
@@ -8631,6 +8703,40 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT supp_nation,
+       cust_nation,
+       l_year,
+       Sum(CASE
+             WHEN ( n1.n_name = 'JAPAN'
+                    AND n2.n_name = 'INDIA' )
+                   OR ( n1.n_name = 'INDIA'
+                        AND n2.n_name = 'JAPAN' ) THEN volume
+             ELSE 0
+           END) AS revenue
+FROM   (SELECT n1.n_name                            AS supp_nation,
+               n2.n_name                            AS cust_nation,
+               Extract(year FROM l_shipdate)        AS l_year,
+               l_extendedprice * ( 1 - l_discount ) AS volume
+        FROM   supplier,
+               lineitem,
+               orders,
+               customer,
+               nation n1,
+               nation n2
+        WHERE  s_suppkey = l_suppkey
+               AND o_orderkey = l_orderkey
+               AND c_custkey = o_custkey
+               AND s_nationkey = n1.n_nationkey
+               AND c_nationkey = n2.n_nationkey
+               AND l_shipdate BETWEEN '1995-01-01' AND '1996-12-31') AS shipping
+GROUP  BY supp_nation,
+          cust_nation,
+          l_year
+ORDER  BY supp_nation,
+          cust_nation,
+          l_year; 
 
 response= {
   "id": "chatcmpl-83tFYkL51kLkRy2E5J7cM7uyt0wIn",
@@ -8808,6 +8914,41 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT shipping.supp_nation,
+       shipping.cust_nation,
+       shipping.l_year,
+       Sum(shipping.volume) AS revenue
+FROM   (SELECT n1.n_name                                 AS supp_nation,
+               n2.n_name                                 AS cust_nation,
+               Extract(year FROM l_shipdate)             AS l_year,
+               Sum(l_extendedprice * ( 1 - l_discount )) AS volume
+        FROM   supplier,
+               lineitem,
+               orders,
+               customer,
+               nation n1,
+               nation n2
+        WHERE  s_suppkey = l_suppkey
+               AND o_orderkey = l_orderkey
+               AND c_custkey = o_custkey
+               AND s_nationkey = n1.n_nationkey
+               AND c_nationkey = n2.n_nationkey
+               AND ( ( n1.n_name = 'JAPAN'
+                       AND n2.n_name = 'INDIA' )
+                      OR ( n1.n_name = 'INDIA'
+                           AND n2.n_name = 'JAPAN' ) )
+               AND l_shipdate BETWEEN '1995-01-01' AND '1996-12-31'
+        GROUP  BY n1.n_name,
+                  n2.n_name,
+                  Extract(year FROM l_shipdate)) AS shipping
+GROUP  BY shipping.supp_nation,
+          shipping.cust_nation,
+          shipping.l_year
+ORDER  BY shipping.supp_nation,
+          shipping.cust_nation,
+          shipping.l_year; 
 
 response= {
   "id": "chatcmpl-83tFqlON7PrXWV6QW0tsuVjZhoFd3",
@@ -8983,6 +9124,33 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] : QRW
+
+SELECT Extract(year FROM o_orderdate)                       AS o_year,
+       Sum(CASE
+             WHEN n2.n_name = 'INDIA' THEN l_extendedprice * ( 1 - l_discount )
+             ELSE 0
+           END) / Sum(l_extendedprice * ( 1 - l_discount )) AS mkt_share
+FROM   part,
+       supplier,
+       lineitem,
+       orders,
+       customer,
+       nation n1,
+       nation n2,
+       region
+WHERE  p_partkey = l_partkey
+       AND s_suppkey = l_suppkey
+       AND l_orderkey = o_orderkey
+       AND o_custkey = c_custkey
+       AND c_nationkey = n1.n_nationkey
+       AND n1.n_regionkey = r_regionkey
+       AND r_name = 'ASIA'
+       AND s_nationkey = n2.n_nationkey
+       AND o_orderdate BETWEEN '1995-01-01' AND '1996-12-31'
+       AND p_type = 'SMALL PLATED COPPER'
+GROUP  BY o_year
+ORDER  BY o_year; 
 
 response= {
   "id": "chatcmpl-83tG8idARxFZBnPAoFxQic8MVdEB3",
@@ -9158,6 +9326,39 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+CREATE TEMPORARY TABLE temp_table AS
+  SELECT Extract(year FROM o_orderdate)       AS o_year,
+         l_extendedprice * ( 1 - l_discount ) AS volume,
+         n2.n_name                            AS nation
+  FROM   part,
+         supplier,
+         lineitem,
+         orders,
+         customer,
+         nation n1,
+         nation n2,
+         region
+  WHERE  p_partkey = l_partkey
+         AND s_suppkey = l_suppkey
+         AND l_orderkey = o_orderkey
+         AND o_custkey = c_custkey
+         AND c_nationkey = n1.n_nationkey
+         AND n1.n_regionkey = r_regionkey
+         AND r_name = 'ASIA'
+         AND s_nationkey = n2.n_nationkey
+         AND o_orderdate BETWEEN '1995-01-01' AND '1996-12-31'
+         AND p_type = 'SMALL PLATED COPPER';
+
+SELECT o_year,
+       SUM(CASE
+             WHEN nation = 'INDIA' THEN volume
+             ELSE 0
+           END) / SUM(volume) AS mkt_share
+FROM   temp_table
+GROUP  BY o_year
+ORDER  BY o_year; 
 
 response= {
   "id": "chatcmpl-83tGO3a0tFfZnX4Jwyld0ebcHqkyj",
@@ -9334,6 +9535,9 @@ order by
 
  ---------------------------------------------- 
 
+
+[HANU]: NO_QRW
+
 response= {
   "id": "chatcmpl-83tGi94prvZtkkWUnKxO7g2V3MZCD",
   "object": "chat.completion",
@@ -9508,6 +9712,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tGqoKA3EOCwe883LlexLSAHxeNn",
@@ -9683,6 +9888,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tH1HJPc8T6YfMldA2Ul1I952KR6",
@@ -9859,6 +10065,34 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT Extract(year FROM o_orderdate)                       AS o_year,
+       Sum(CASE
+             WHEN n2.n_name = 'INDIA' THEN l_extendedprice * ( 1 - l_discount )
+             ELSE 0
+           END) / Sum(l_extendedprice * ( 1 - l_discount )) AS mkt_share
+FROM   part,
+       supplier,
+       lineitem,
+       orders,
+       customer,
+       nation n1,
+       nation n2,
+       region
+WHERE  p_partkey = l_partkey
+       AND s_suppkey = l_suppkey
+       AND l_orderkey = o_orderkey
+       AND o_custkey = c_custkey
+       AND c_nationkey = n1.n_nationkey
+       AND n1.n_regionkey = r_regionkey
+       AND r_name = 'ASIA'
+       AND s_nationkey = n2.n_nationkey
+       AND o_orderdate BETWEEN '1995-01-01' AND '1996-12-31'
+       AND p_type = 'SMALL PLATED COPPER'
+GROUP  BY o_year
+ORDER  BY o_year ;
+
 response= {
   "id": "chatcmpl-83tHAJCKBOl2h3DWPb3XpEFsgZ9Mn",
   "object": "chat.completion",
@@ -10033,6 +10267,43 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] : QRW
+
+SELECT all_nations.o_year,
+       Sum(CASE
+             WHEN all_nations.nation = 'INDIA' THEN all_nations.india_volume
+             ELSE 0
+           END) / Sum(all_nations.volume) AS mkt_share
+FROM   (SELECT Extract(year FROM o_orderdate)            AS o_year,
+               Sum(l_extendedprice * ( 1 - l_discount )) AS volume,
+               Sum(CASE
+                     WHEN n2.n_name = 'INDIA' THEN
+                     l_extendedprice * ( 1 - l_discount )
+                     ELSE 0
+                   END)                                  AS india_volume,
+               n2.n_name                                 AS nation
+        FROM   part,
+               supplier,
+               lineitem,
+               orders,
+               customer,
+               nation n1,
+               nation n2,
+               region
+        WHERE  p_partkey = l_partkey
+               AND s_suppkey = l_suppkey
+               AND l_orderkey = o_orderkey
+               AND o_custkey = c_custkey
+               AND c_nationkey = n1.n_nationkey
+               AND n1.n_regionkey = r_regionkey
+               AND r_name = 'ASIA'
+               AND s_nationkey = n2.n_nationkey
+               AND o_orderdate BETWEEN '1995-01-01' AND '1996-12-31'
+               AND p_type = 'SMALL PLATED COPPER'
+        GROUP  BY Extract(year FROM o_orderdate),
+                  n2.n_name) AS all_nations
+GROUP  BY all_nations.o_year
+ORDER  BY all_nations.o_year; 
 
 response= {
   "id": "chatcmpl-83tHNBu6hDjyBHEHXJi7jjN5TUgPT",
@@ -10204,6 +10475,42 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT nation,
+       o_year,
+       Sum(amount) AS sum_profit
+FROM   (SELECT n_name
+               AS
+                      nation,
+               Extract(year FROM o_orderdate)
+               AS
+                      o_year,
+               l_extendedprice * ( 1 - l_discount ) - ps_supplycost * l_quantity
+               AS
+                      amount
+        FROM   (SELECT *
+                FROM   part
+                WHERE  p_name LIKE '%dim%') AS part,
+               supplier,
+               (SELECT *
+                FROM   lineitem
+                WHERE  l_suppkey = ps_suppkey
+                       AND l_partkey = p_partkey) AS lineitem,
+               partsupp,
+               orders,
+               nation
+        WHERE  s_suppkey = l_suppkey
+               AND ps_suppkey = l_suppkey
+               AND ps_partkey = l_partkey
+               AND p_partkey = l_partkey
+               AND o_orderkey = l_orderkey
+               AND s_nationkey = n_nationkey) AS profit
+GROUP  BY nation,
+          o_year
+ORDER  BY nation,
+          o_year DESC; 
+
 response= {
   "id": "chatcmpl-83tHgt2XXJzkI6AkTtuuL0kpXcQsb",
   "object": "chat.completion",
@@ -10374,6 +10681,43 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT nation,
+       o_year,
+       Sum(amount) AS sum_profit
+FROM   (SELECT nation,
+               o_year,
+               Sum(amount) AS amount
+        FROM   (SELECT n_name
+                       AS
+                               nation,
+                       Extract(year FROM o_orderdate)
+                       AS
+                               o_year,
+                       l_extendedprice * ( 1 - l_discount ) -
+                       ps_supplycost * l_quantity AS
+                               amount
+                FROM   part,
+                       supplier,
+                       lineitem,
+                       partsupp,
+                       orders,
+                       nation
+                WHERE  s_suppkey = l_suppkey
+                       AND ps_suppkey = l_suppkey
+                       AND ps_partkey = l_partkey
+                       AND p_partkey = l_partkey
+                       AND o_orderkey = l_orderkey
+                       AND s_nationkey = n_nationkey
+                       AND p_name LIKE '%dim%') AS profit
+        GROUP  BY nation,
+                  o_year) AS profit_per_year
+GROUP  BY nation,
+          o_year
+ORDER  BY nation,
+          o_year DESC; 
+
 response= {
   "id": "chatcmpl-83tHsOzlUzTsEbk7eKgNo25214zhc",
   "object": "chat.completion",
@@ -10543,6 +10887,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tI9NMpgTwAqVAT02uy3PYK4kUaK",
@@ -10713,6 +11058,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]  NO_QRW
 
 response= {
   "id": "chatcmpl-83tIGI1XoBIK1d2jryJOP5dqx3ODG",
@@ -10883,6 +11229,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tIVCrFzt0C6inLZPtA99itdlIR7",
@@ -11053,6 +11400,31 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT n_name                         AS nation,
+       Extract(year FROM o_orderdate) AS o_year,
+       Sum(CASE
+             WHEN p_name LIKE '%dim%' THEN l_extendedprice * ( 1 - l_discount )
+                                           - ps_supplycost * l_quantity
+             ELSE 0
+           END)                       AS sum_profit
+FROM   part,
+       supplier,
+       lineitem,
+       partsupp,
+       orders,
+       nation
+WHERE  s_suppkey = l_suppkey
+       AND ps_suppkey = l_suppkey
+       AND ps_partkey = l_partkey
+       AND p_partkey = l_partkey
+       AND o_orderkey = l_orderkey
+       AND s_nationkey = n_nationkey
+GROUP  BY nation,
+          o_year
+ORDER  BY nation,
+          o_year DESC; 
 
 response= {
   "id": "chatcmpl-83tIljYTpWANQ0Y5TYRlNRUbCt0XM",
@@ -11223,6 +11595,38 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT nation,
+       o_year,
+       Sum(amount) AS sum_profit
+FROM   (SELECT n_name
+                      AS nation
+                      ,
+               Extract(year FROM o_orderdate)
+                      AS o_year,
+               Sum(l_extendedprice * ( 1 - l_discount ) -
+                   ps_supplycost * l_quantity)
+                      AS amount
+        FROM   part,
+               supplier,
+               lineitem,
+               partsupp,
+               orders,
+               nation
+        WHERE  s_suppkey = l_suppkey
+               AND ps_suppkey = l_suppkey
+               AND ps_partkey = l_partkey
+               AND p_partkey = l_partkey
+               AND o_orderkey = l_orderkey
+               AND s_nationkey = n_nationkey
+               AND p_name LIKE '%dim%'
+        GROUP  BY n_name,
+                  Extract(year FROM o_orderdate)) AS profit
+GROUP  BY nation,
+          o_year
+ORDER  BY nation,
+          o_year DESC; 
 
 response= {
   "id": "chatcmpl-83tIymPHrs3ojqFAMGBBOw6vD0sPE",
@@ -11393,6 +11797,41 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT c.c_custkey,
+       c.c_name,
+       Sum(l.l_extendedprice * ( 1 - l.l_discount )) AS revenue,
+       c.c_acctbal,
+       n.n_name,
+       c.c_address,
+       c.c_phone,
+       c.c_comment
+FROM   (SELECT *
+        FROM   customer
+        WHERE  c_nationkey IS NOT NULL) c
+       JOIN (SELECT *
+             FROM   orders
+             WHERE  o_orderdate >= '1993-08-01'
+                    AND o_orderdate < Date_add('1993-08-01', INTERVAL 3 month)
+                    AND o_custkey IS NOT NULL) o
+         ON c.c_custkey = o.o_custkey
+       JOIN (SELECT *
+             FROM   lineitem
+             WHERE  l_returnflag = 'R'
+                    AND l_orderkey IS NOT NULL) l
+         ON l.l_orderkey = o.o_orderkey
+       JOIN nation n
+         ON c.c_nationkey = n.n_nationkey
+GROUP  BY c.c_custkey,
+          c.c_name,
+          c.c_acctbal,
+          c.c_phone,
+          n.n_name,
+          c.c_address,
+          c.c_comment
+ORDER  BY revenue DESC
+LIMIT  20; 
 
 response= {
   "id": "chatcmpl-83tJBrZpHKuxB9qF7W0t4jRWCQFpX",
@@ -11563,6 +12002,42 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+CREATE temporary TABLE pre_agg AS
+  SELECT l_orderkey,
+         Sum(l_extendedprice * ( 1 - l_discount )) AS pre_revenue
+  FROM   lineitem,
+         orders
+  WHERE  l_orderkey = o_orderkey
+         AND o_orderdate >= '1993-08-01'
+         AND o_orderdate < Date_add('1993-08-01', INTERVAL 3 month)
+         AND l_returnflag = 'R'
+  GROUP  BY l_orderkey;
+
+SELECT c_custkey,
+       c_name,
+       Sum(pre_revenue) AS revenue,
+       c_acctbal,
+       n_name,
+       c_address,
+       c_phone,
+       c_comment
+FROM   customer,
+       pre_agg,
+       nation
+WHERE  c_custkey = o_custkey
+       AND pre_agg.l_orderkey = o_orderkey
+       AND c_nationkey = n_nationkey
+GROUP  BY c_custkey,
+          c_name,
+          c_acctbal,
+          c_phone,
+          n_name,
+          c_address,
+          c_comment
+ORDER  BY revenue DESC
+LIMIT  20; 
 
 response= {
   "id": "chatcmpl-83tJP2ypyahM2VdrQkd8AVg3EqY4f",
@@ -11733,6 +12208,35 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_custkey,
+       c_name,
+       Sum(l_extendedprice * ( 1 - l_discount )) AS revenue,
+       c_acctbal,
+       n_name,
+       c_address,
+       c_phone,
+       c_comment
+FROM   customer,
+       orders,
+       lineitem,
+       nation
+WHERE  c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+       AND o_orderdate >= '1993-08-01'
+       AND o_orderdate < '1993-11-01'
+       AND l_returnflag = 'R'
+       AND c_nationkey = n_nationkey
+GROUP  BY c_custkey,
+          c_name,
+          c_acctbal,
+          c_phone,
+          n_name,
+          c_address,
+          c_comment
+ORDER  BY revenue DESC
+LIMIT  20; 
 
 response= {
   "id": "chatcmpl-83tJgvutf2YrNl0uNiJWDwgthbi0r",
@@ -11903,6 +12407,7 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tJtYhwEuc9WBBZeJX9t2iaFO0iq",
@@ -12073,6 +12578,35 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c.c_custkey,
+       c.c_name,
+       Sum(l.l_extendedprice * ( 1 - l.l_discount )) AS revenue,
+       c.c_acctbal,
+       n.n_name,
+       c.c_address,
+       c.c_phone,
+       c.c_comment
+FROM   customer c
+       JOIN orders o
+         ON c.c_custkey = o.o_custkey
+       JOIN lineitem l
+         ON l.l_orderkey = o.o_orderkey
+       JOIN nation n
+         ON c.c_nationkey = n.n_nationkey
+WHERE  o.o_orderdate >= '1993-08-01'
+       AND o.o_orderdate < Date_add('1993-08-01', INTERVAL 3 month)
+       AND l.l_returnflag = 'R'
+GROUP  BY c.c_custkey,
+          c.c_name,
+          c.c_acctbal,
+          c.c_phone,
+          n.n_name,
+          c.c_address,
+          c.c_comment
+ORDER  BY revenue DESC
+LIMIT  20 ;
 
 response= {
   "id": "chatcmpl-83tK1PffLqMlVPoXRo0cEIfqjiwE6",
@@ -12243,6 +12777,38 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_custkey,
+       c_name,
+       Sum(CASE
+             WHEN o_orderdate >= '1993-08-01'
+                  AND o_orderdate < Date_add('1993-08-01', INTERVAL 3 month)
+                  AND l_returnflag = 'R' THEN l_extendedprice *
+                                              ( 1 - l_discount )
+             ELSE 0
+           end) AS revenue,
+       c_acctbal,
+       n_name,
+       c_address,
+       c_phone,
+       c_comment
+FROM   customer,
+       orders,
+       lineitem,
+       nation
+WHERE  c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+       AND c_nationkey = n_nationkey
+GROUP  BY c_custkey,
+          c_name,
+          c_acctbal,
+          c_phone,
+          n_name,
+          c_address,
+          c_comment
+ORDER  BY revenue DESC
+LIMIT  20; 
 
 response= {
   "id": "chatcmpl-83tKDVXmuaA2DgvkTQXgLklfYdqmI",
@@ -12413,6 +12979,43 @@ limit 20;
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_custkey,
+       c_name,
+       Sum(revenue) AS total_revenue,
+       c_acctbal,
+       n_name,
+       c_address,
+       c_phone,
+       c_comment
+FROM   (SELECT c_custkey,
+               c_name,
+               l_extendedprice * ( 1 - l_discount ) AS revenue,
+               c_acctbal,
+               n_name,
+               c_address,
+               c_phone,
+               c_comment
+        FROM   customer,
+               orders,
+               lineitem,
+               nation
+        WHERE  c_custkey = o_custkey
+               AND l_orderkey = o_orderkey
+               AND o_orderdate >= '1993-08-01'
+               AND o_orderdate < Date_add('1993-08-01', INTERVAL '3' month)
+               AND l_returnflag = 'R'
+               AND c_nationkey = n_nationkey) AS derived_table
+GROUP  BY c_custkey,
+          c_name,
+          c_acctbal,
+          c_phone,
+          n_name,
+          c_address,
+          c_comment
+ORDER  BY total_revenue DESC
+LIMIT  20; 
 
 response= {
   "id": "chatcmpl-83tKOelOnzoVGFxbLa0QEHghkIBtG",
@@ -12578,6 +13181,28 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT ps_partkey,
+       Sum(ps_supplycost * ps_availqty) AS value
+FROM   partsupp
+       JOIN supplier
+         ON ps_suppkey = s_suppkey
+       JOIN nation
+         ON s_nationkey = n_nationkey
+            AND n_name = 'MOZAMBIQUE'
+GROUP  BY ps_partkey
+HAVING Sum(ps_supplycost * ps_availqty) > (SELECT
+       Sum(ps_supplycost * ps_availqty) * 0.0001000000
+                                           FROM   partsupp
+                                                  JOIN supplier
+                                                    ON ps_suppkey = s_suppkey
+                                                  JOIN nation
+                                                    ON s_nationkey = n_nationkey
+                                                       AND n_name = 'MOZAMBIQUE'
+                                          )
+ORDER  BY value DESC; 
+
 response= {
   "id": "chatcmpl-83tKdYaYnTMIduiEX6I7buItsZ2lh",
   "object": "chat.completion",
@@ -12741,6 +13366,26 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU] QRW
+
+CREATE TEMPORARY TABLE temp_table AS
+  SELECT ps_partkey,
+         SUM(ps_supplycost * ps_availqty) AS value
+  FROM   partsupp
+         join supplier
+           ON ps_suppkey = s_suppkey
+         join nation
+           ON s_nationkey = n_nationkey
+  WHERE  n_name = 'MOZAMBIQUE'
+  GROUP  BY ps_partkey;
+
+SELECT ps_partkey,
+       value
+FROM   temp_table
+WHERE  value > (SELECT SUM(value) * 0.0001000000
+                FROM   temp_table)
+ORDER  BY value DESC; 
 
 response= {
   "id": "chatcmpl-83tKn3trAECLrJXBIF9KZZzm4PoOB",
@@ -12906,6 +13551,26 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT Sum(ps_supplycost * ps_availqty) * 0.0001000000
+FROM   partsupp,
+       supplier,
+       nation
+WHERE  ps_suppkey = s_suppkey
+AND    s_nationkey = n_nationkey
+AND    n_name = 'MOZAMBIQUE' );SELECT   ps_partkey,
+         Sum(ps_supplycost * ps_availqty) AS value
+FROM     partsupp,
+         supplier,
+         nation
+WHERE    ps_suppkey = s_suppkey
+AND      s_nationkey = n_nationkey
+AND      n_name = 'MOZAMBIQUE'
+GROUP BY ps_partkey
+HAVING   Sum(ps_supplycost * ps_availqty) > @constant_value
+ORDER BY value DESC;
+
 response= {
   "id": "chatcmpl-83tL1cbGqg8rMuJsqMTmPl1Qi4ldh",
   "object": "chat.completion",
@@ -13069,6 +13734,8 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tLIKU6yhHIfrVgS1NeOKZjPCepG",
@@ -13234,6 +13901,27 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT ps_partkey,
+       Sum(ps_supplycost * ps_availqty) AS value
+FROM   partsupp
+       JOIN supplier
+         ON ps_suppkey = s_suppkey
+       JOIN nation
+         ON s_nationkey = n_nationkey
+WHERE  n_name = 'MOZAMBIQUE'
+GROUP  BY ps_partkey
+HAVING Sum(ps_supplycost * ps_availqty) > (SELECT
+       Sum(ps_supplycost * ps_availqty) * 0.0001000000
+                                           FROM   partsupp
+                                                  JOIN supplier
+                                                    ON ps_suppkey = s_suppkey
+                                                  JOIN nation
+                                                    ON s_nationkey = n_nationkey
+                                           WHERE  n_name = 'MOZAMBIQUE')
+ORDER  BY value DESC; 
+
 response= {
   "id": "chatcmpl-83tLYENxSQD5vGd9ZZTq5ThnNLiB4",
   "object": "chat.completion",
@@ -13398,6 +14086,31 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT ps_partkey,
+       Sum(CASE
+             WHEN n_name = 'MOZAMBIQUE' THEN ps_supplycost * ps_availqty
+             ELSE 0
+           END) AS value
+FROM   partsupp
+       JOIN supplier
+         ON ps_suppkey = s_suppkey
+       JOIN nation
+         ON s_nationkey = n_nationkey
+GROUP  BY ps_partkey
+HAVING value > (SELECT Sum(CASE
+                             WHEN n_name = 'MOZAMBIQUE' THEN
+                             ps_supplycost * ps_availqty
+                             ELSE 0
+                           END) * 0.0001000000
+                FROM   partsupp
+                       JOIN supplier
+                         ON ps_suppkey = s_suppkey
+                       JOIN nation
+                         ON s_nationkey = n_nationkey)
+ORDER  BY value DESC; 
+
 response= {
   "id": "chatcmpl-83tLkq4RQUHsRasn7XBkes3R2Zjq1",
   "object": "chat.completion",
@@ -13561,6 +14274,34 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU] QRW
+
+SELECT ps_partkey,
+       Sum(ps_supplycost * ps_availqty) AS value
+FROM   partsupp
+       JOIN supplier
+         ON ps_suppkey = s_suppkey
+       JOIN nation
+         ON s_nationkey = n_nationkey
+WHERE  n_name = 'MOZAMBIQUE'
+GROUP  BY ps_partkey
+HAVING Sum(ps_supplycost * ps_availqty) > (SELECT total_value * 0.0001000000
+                                           FROM
+              (SELECT
+              Sum(ps_supplycost *
+                  ps_availqty) AS total_value
+                                                   FROM   partsupp
+                                                          JOIN supplier
+                                                            ON
+              ps_suppkey = s_suppkey
+                                                          JOIN nation
+                                                            ON s_nationkey =
+                                                               n_nationkey
+                                                   WHERE  n_name = 'MOZAMBIQUE')
+              AS derived_table
+                                                 )
+ORDER  BY value DESC; 
 
 response= {
   "id": "chatcmpl-83tLwDlbwdQRzl9gW9CRCXhuw21kH",
@@ -13728,6 +14469,35 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT l_shipmode,
+       SUM(CASE
+             WHEN o_orderpriority = '1-URGENT'
+                   OR o_orderpriority = '2-HIGH' THEN 1
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN o_orderpriority <> '1-URGENT'
+                  AND o_orderpriority <> '2-HIGH' THEN 1
+             ELSE 0
+           END) AS low_line_count
+FROM   (SELECT *
+        FROM   orders
+        WHERE  o_orderpriority IN ( '1-URGENT', '2-HIGH', '3-MEDIUM', '4-LOW',
+                                    '5-LOWEST' )) AS orders,
+       (SELECT *
+        FROM   lineitem
+        WHERE  l_shipmode IN ( 'RAIL', 'FOB' )
+               AND l_commitdate < l_receiptdate
+               AND l_shipdate < l_commitdate
+               AND l_receiptdate >= '1997-01-01'
+               AND l_receiptdate < Date_add('1997-01-01', interval 1 year)) AS
+       lineitem
+WHERE  o_orderkey = l_orderkey
+GROUP  BY l_shipmode
+ORDER  BY l_shipmode; 
+
 response= {
   "id": "chatcmpl-83tMAosd9ukqxk2sfPtPQdjsjUv7Y",
   "object": "chat.completion",
@@ -13893,6 +14663,38 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU] QRW
+
+CREATE TEMPORARY TABLE temp_table AS
+  SELECT l_shipmode,
+         o_orderpriority,
+         Count(*) AS count
+  FROM   orders,
+         lineitem
+  WHERE  o_orderkey = l_orderkey
+         AND l_shipmode IN ( 'RAIL', 'FOB' )
+         AND l_commitdate < l_receiptdate
+         AND l_shipdate < l_commitdate
+         AND l_receiptdate >= '1997-01-01'
+         AND l_receiptdate < Date_add('1997-01-01', interval 1 year)
+  GROUP  BY l_shipmode,
+            o_orderpriority;
+
+SELECT l_shipmode,
+       SUM(CASE
+             WHEN o_orderpriority = '1-URGENT'
+                   OR o_orderpriority = '2-HIGH' THEN count
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN o_orderpriority <> '1-URGENT'
+                  AND o_orderpriority <> '2-HIGH' THEN count
+             ELSE 0
+           END) AS low_line_count
+FROM   temp_table
+GROUP  BY l_shipmode
+ORDER  BY l_shipmode; 
 
 response= {
   "id": "chatcmpl-83tMOiYrUEwMznKZZXa0foXS0nzoS",
@@ -14060,6 +14862,30 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT l_shipmode,
+       SUM(CASE
+             WHEN o_orderpriority = '1-URGENT'
+                   OR o_orderpriority = '2-HIGH' THEN 1
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN o_orderpriority <> '1-URGENT'
+                  AND o_orderpriority <> '2-HIGH' THEN 1
+             ELSE 0
+           END) AS low_line_count
+FROM   orders
+       join lineitem
+         ON o_orderkey = l_orderkey
+WHERE  l_shipmode IN ( 'RAIL', 'FOB' )
+       AND l_commitdate < l_receiptdate
+       AND l_shipdate < l_commitdate
+       AND l_receiptdate >= '1997-01-01'
+       AND l_receiptdate < Date_add('1997-01-01', interval 1 year)
+GROUP  BY l_shipmode
+ORDER  BY l_shipmode; 
+
 response= {
   "id": "chatcmpl-83tMgEtmCTNU81NaubcbcivRGbHHi",
   "object": "chat.completion",
@@ -14225,6 +15051,33 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU] QRW
+
+SELECT l_shipmode,
+       SUM(CASE
+             WHEN o_orderpriority = '1-URGENT'
+                   OR o_orderpriority = '2-HIGH' THEN 1
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN o_orderpriority <> '1-URGENT'
+                  AND o_orderpriority <> '2-HIGH' THEN 1
+             ELSE 0
+           END) AS low_line_count
+FROM   (SELECT DISTINCT *
+        FROM   orders) AS orders,
+       (SELECT DISTINCT *
+        FROM   lineitem
+        WHERE  l_shipmode IN ( 'RAIL', 'FOB' )
+               AND l_commitdate < l_receiptdate
+               AND l_shipdate < l_commitdate
+               AND l_receiptdate >= '1997-01-01'
+               AND l_receiptdate < Date_add('1997-01-01', interval '1' year)) AS
+       lineitem
+WHERE  o_orderkey = l_orderkey
+GROUP  BY l_shipmode
+ORDER  BY l_shipmode; 
 
 response= {
   "id": "chatcmpl-83tMuJYOxuxSil4lUQKpyBwM3Mvoz",
@@ -14392,6 +15245,30 @@ order by
 
  ---------------------------------------------- 
 
+[HANU] QRW
+
+SELECT l_shipmode,
+       SUM(CASE
+             WHEN o_orderpriority = '1-URGENT'
+                   OR o_orderpriority = '2-HIGH' THEN 1
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN o_orderpriority <> '1-URGENT'
+                  AND o_orderpriority <> '2-HIGH' THEN 1
+             ELSE 0
+           END) AS low_line_count
+FROM   orders
+       join lineitem
+         ON o_orderkey = l_orderkey
+WHERE  l_shipmode IN ( 'RAIL', 'FOB' )
+       AND l_commitdate < l_receiptdate
+       AND l_shipdate < l_commitdate
+       AND l_receiptdate >= '1997-01-01'
+       AND l_receiptdate < Date_add('1997-01-01', interval 1 year)
+GROUP  BY l_shipmode
+ORDER  BY l_shipmode; 
+
 response= {
   "id": "chatcmpl-83tN9CViy3oorj2f5N6ey7Ocj6UVi",
   "object": "chat.completion",
@@ -14557,6 +15434,33 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT l_shipmode,
+       SUM(CASE
+             WHEN o_orderpriority = '1-URGENT'
+                   OR o_orderpriority = '2-HIGH' THEN 1
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN o_orderpriority <> '1-URGENT'
+                  AND o_orderpriority <> '2-HIGH' THEN 1
+             ELSE 0
+           END) AS low_line_count
+FROM   orders,
+       lineitem
+WHERE  o_orderkey = l_orderkey
+GROUP  BY l_shipmode
+HAVING SUM(CASE
+             WHEN l_shipmode IN ( 'RAIL', 'FOB' )
+                  AND l_commitdate < l_receiptdate
+                  AND l_shipdate < l_commitdate
+                  AND l_receiptdate >= '1997-01-01'
+                  AND l_receiptdate < Date_add('1997-01-01', interval '1' year)
+           THEN 1
+             ELSE 0
+           END) > 0
+ORDER  BY l_shipmode; 
 
 response= {
   "id": "chatcmpl-83tNMrSDTfy8VW2gfbJwXRtabBNWx",
@@ -14723,6 +15627,32 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT dt.l_shipmode,
+       SUM(CASE
+             WHEN dt.o_orderpriority = '1-URGENT'
+                   OR dt.o_orderpriority = '2-HIGH' THEN 1
+             ELSE 0
+           END) AS high_line_count,
+       SUM(CASE
+             WHEN dt.o_orderpriority <> '1-URGENT'
+                  AND dt.o_orderpriority <> '2-HIGH' THEN 1
+             ELSE 0
+           END) AS low_line_count
+FROM   (SELECT DISTINCT l_shipmode,
+                        o_orderpriority
+        FROM   orders,
+               lineitem
+        WHERE  o_orderkey = l_orderkey
+               AND l_shipmode IN ( 'RAIL', 'FOB' )
+               AND l_commitdate < l_receiptdate
+               AND l_shipdate < l_commitdate
+               AND l_receiptdate >= '1997-01-01'
+               AND l_receiptdate < Date_add('1997-01-01', interval '1' year)) AS
+       dt
+GROUP  BY dt.l_shipmode
+ORDER  BY dt.l_shipmode; 
 
 response= {
   "id": "chatcmpl-83tNc8tB6kpFWznh8F8o1e2NxuRPO",
@@ -14881,6 +15811,23 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_count,
+       Count(*) AS custdist
+FROM   (SELECT c_custkey,
+               Count(o_orderkey) AS c_count
+        FROM   (SELECT *
+                FROM   customer) c
+               LEFT OUTER JOIN (SELECT *
+                                FROM   orders
+                                WHERE  o_comment NOT LIKE '%pending%deposits%')
+                               o
+                            ON c.c_custkey = o.o_custkey
+        GROUP  BY c.c_custkey) c_orders
+GROUP  BY c_count
+ORDER  BY custdist DESC,
+          c_count DESC; 
 
 response= {
   "id": "chatcmpl-83tNruB2BVRmZwb06vqGpBFwP3Mpy",
@@ -15039,6 +15986,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tO1yij2OEYjI1sp6MhDkY0sHdo6",
@@ -15197,6 +16145,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] NO_QRW
 
 response= {
   "id": "chatcmpl-83tOKsTtxfRDvXpFa2OducvMWUWtB",
@@ -15355,6 +16304,20 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_count,
+       Count(*) AS custdist
+FROM   (SELECT c_custkey,
+               Count(DISTINCT o_orderkey) AS c_count
+        FROM   customer
+               LEFT OUTER JOIN orders
+                            ON c_custkey = o_custkey
+                               AND o_comment NOT LIKE '%pending%deposits%'
+        GROUP  BY c_custkey) c_orders
+GROUP  BY c_count
+ORDER  BY custdist DESC,
+          c_count DESC; 
 
 response= {
   "id": "chatcmpl-83tOTtARifBpENCmWUdVU8kt8IYtf",
@@ -15513,6 +16476,20 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_count,
+       Count(*) AS custdist
+FROM   (SELECT c_custkey,
+               Count(o_orderkey) AS c_count
+        FROM   customer
+               INNER JOIN orders
+                       ON c_custkey = o_custkey
+                          AND o_comment NOT LIKE '%pending%deposits%'
+        GROUP  BY c_custkey) c_orders
+GROUP  BY c_count
+ORDER  BY custdist DESC,
+          c_count DESC; 
 
 response= {
   "id": "chatcmpl-83tOfNjViDQ73BkKX5mlhw3hBL8xp",
@@ -15671,6 +16648,22 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] QRW
+
+SELECT c_count,
+       Count(*) AS custdist
+FROM   (SELECT c_custkey,
+               Sum(CASE
+                     WHEN o_comment NOT LIKE '%pending%deposits%' THEN 1
+                     ELSE 0
+                   END) AS c_count
+        FROM   customer
+               LEFT OUTER JOIN orders
+                            ON c_custkey = o_custkey
+        GROUP  BY c_custkey) c_orders
+GROUP  BY c_count
+ORDER  BY custdist DESC,
+          c_count DESC; 
 
 response= {
   "id": "chatcmpl-83tOsZAwQsc3GUyR1bLvXal0Rz2Zm",
