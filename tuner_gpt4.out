@@ -6917,6 +6917,14 @@ where
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT Sum(l_extendedprice * l_discount) AS revenue
+FROM   lineitem
+WHERE  l_shipdate >= '1994-01-01'
+       AND l_shipdate < '1995-01-01'
+       AND l_discount BETWEEN 0.05 AND 0.07
+       AND l_quantity < 24; 
 
 response= {
   "id": "chatcmpl-83tDiuHh9j8LI8mZSdECTsp8m7RMx",
@@ -7064,6 +7072,7 @@ where
 
 
  ---------------------------------------------- 
+[HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83tDsMlTuHvGrK9SXKZ6we5Da4sCl",
@@ -7212,6 +7221,8 @@ where
 
  ---------------------------------------------- 
 
+[HANU]: NO_QRW
+
 response= {
   "id": "chatcmpl-83tE4poigBN4pjn7CmTj657CI55F8",
   "object": "chat.completion",
@@ -7358,6 +7369,16 @@ where
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT SUM(CASE
+             WHEN l_shipdate >= '1994-01-01'
+                  AND l_shipdate < Date_add('1994-01-01', interval 1 year)
+                  AND l_discount BETWEEN 0.06 - 0.01 AND 0.06 + 0.01
+                  AND l_quantity < 24 THEN l_extendedprice * l_discount
+             ELSE 0
+           END) AS revenue
+FROM   lineitem; 
 
 response= {
   "id": "chatcmpl-83tEAnxsXXvgMYeJRrSKs7ydplKcL",
@@ -7505,6 +7526,17 @@ where
 
 
  ---------------------------------------------- 
+
+[HANU]: QRW
+
+SELECT l_shipdate,
+       SUM(l_extendedprice * l_discount) AS revenue
+FROM   lineitem
+WHERE  l_shipdate >= '1994-01-01'
+       AND l_shipdate < Date_add('1994-01-01', interval 1 year)
+       AND l_discount BETWEEN 0.06 - 0.01 AND 0.06 + 0.01
+       AND l_quantity < 24
+GROUP  BY l_shipdate; 
 
 response= {
   "id": "chatcmpl-83tELZxeYAfVSbxuDeCrvyzPSijUZ",
@@ -7682,6 +7714,38 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT n1.n_name                                     AS supp_nation,
+       n2.n_name                                     AS cust_nation,
+       Extract(year FROM l.l_shipdate)               AS l_year,
+       Sum(l.l_extendedprice * ( 1 - l.l_discount )) AS revenue
+FROM   supplier s
+       JOIN lineitem l
+         ON s.s_suppkey = l.l_suppkey
+            AND l.l_shipdate BETWEEN '1995-01-01' AND '1996-12-31'
+       JOIN orders o
+         ON o.o_orderkey = l.l_orderkey
+       JOIN customer c
+         ON c.c_custkey = o.o_custkey
+       JOIN nation n1
+         ON s.s_nationkey = n1.n_nationkey
+            AND ( n1.n_name = 'JAPAN'
+                   OR n1.n_name = 'INDIA' )
+       JOIN nation n2
+         ON c.c_nationkey = n2.n_nationkey
+            AND ( n2.n_name = 'JAPAN'
+                   OR n2.n_name = 'INDIA' )
+WHERE  ( n1.n_name = 'JAPAN'
+         AND n2.n_name = 'INDIA' )
+        OR ( n1.n_name = 'INDIA'
+             AND n2.n_name = 'JAPAN' )
+GROUP  BY supp_nation,
+          cust_nation,
+          l_year
+ORDER  BY supp_nation,
+          cust_nation,
+          l_year; 
 
 response= {
   "id": "chatcmpl-83tEUUmDKjEovGjJN3WG6ddcCHsnN",
