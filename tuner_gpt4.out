@@ -137,6 +137,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU] : NO_QRW
 
 response= {
   "id": "chatcmpl-83t60IYCiJLnJDlZeWau3qjrSwtns",
@@ -296,7 +297,7 @@ order by
 
 
  ---------------------------------------------- 
-// [HANU]: analysis the query is made more complex by adding a join,however, it seems like a semantically correct rewrite.
+// [HANU]: QRW
 /*
 
 rewritten query:
@@ -495,7 +496,7 @@ order by
 
  ---------------------------------------------- 
 
-// [HANU]: This query is already optimized no more optimizations done by gpt-4
+// [HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83t6Q3hcfRWvac2YriEmHqITmIRy7",
@@ -656,7 +657,7 @@ order by
 
  ---------------------------------------------- 
 
-// [HANU]: No optimization is done as this query doesn't contain the DISTINCT clause.
+// [HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83t6ZfoDPbOT5KH44AHd3cMxbvCSf",
@@ -816,7 +817,7 @@ order by
 
 
  ---------------------------------------------- 
-// [HANU]: No optimization done.
+// [HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83t6iosGBIElGKReMhH2iMaTsgDCQ",
@@ -977,7 +978,7 @@ order by
 
  ---------------------------------------------- 
 
-// [HANU]: rewrite is done by GPT-4. I don't think that it will perform better than original query.
+// [HANU]: QRW (don't think it will perform better than original)
 
 SELECT l_returnflag,
        l_linestatus,
@@ -1187,7 +1188,7 @@ order by
 
  ---------------------------------------------- 
 
-// [HANU]: query rewrite is suggested by GPT-4
+// [HANU]: QRW
 
 SELECT l_returnflag,
        l_linestatus,
@@ -1406,7 +1407,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query rewrite suggested by GPT-4
+// [HANU]: QRW
 
 SELECT s_acctbal,
        s_name,
@@ -1641,7 +1642,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query rewrite suggested by GPT-4
+// [HANU]: QRW
 
 SELECT s.s_acctbal,
        s.s_name,
@@ -1859,7 +1860,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query rewrite is not suggested by GPT-4
+// [HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83t860TnDIiFVOYAo1AMywK4ORvs7",
@@ -2043,7 +2044,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query Rewrite is not suggested by GPT-4
+// [HANU]: NO_QRW
 
 
 response= {
@@ -2228,7 +2229,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query rewrite is not suggested by GPT-4
+// [HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83t8O12WoNaUG1jdIY7LvudBGKlg9",
@@ -2412,7 +2413,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query rewrite is not suggested by GPT-4
+// [HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83t8XKDQaZqZy4EgUlrUjp3hGo9j0",
@@ -2596,7 +2597,7 @@ limit 100;
 
  ---------------------------------------------- 
 
-// [HANU]: Query Rewrite is suggested by GPT-4
+// [HANU]: QRW
 
 SELECT s.s_acctbal,
        s.s_name,
@@ -2799,7 +2800,7 @@ limit 10;
 
 
  ---------------------------------------------- 
-// [HANU]: QR
+// [HANU]: QRW
 
 SELECT   l_orderkey,
          Sum(l_extendedprice * (1 - l_discount)) AS revenue,
@@ -4102,6 +4103,8 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: NO_QRW
+
 response= {
   "id": "chatcmpl-83tAPnZkArZ3KZ2GF6GnWOX2SaBYr",
   "object": "chat.completion",
@@ -4260,6 +4263,23 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU]: QRW
+
+CREATE TEMPORARY TABLE temp_lineitem AS
+  SELECT l_orderkey
+  FROM   lineitem
+  WHERE  l_commitdate < l_receiptdate;
+
+SELECT o_orderpriority,
+       Count(*) AS order_count
+FROM   orders
+       join temp_lineitem
+         ON orders.o_orderkey = temp_lineitem.l_orderkey
+WHERE  o_orderdate >= '1995-01-01'
+       AND o_orderdate < Date_add('1995-01-01', interval 3 month)
+GROUP  BY o_orderpriority
+ORDER  BY o_orderpriority; 
 
 response= {
   "id": "chatcmpl-83tAaX20FNeTn8kpbGBaPnCAiDBHK",
@@ -4420,6 +4440,22 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT   o_orderpriority,
+         Count(*) AS o rder_count
+FROM     orders
+WHERE    o_orderdate >= '1995-01-01'
+AND      o_orderdate < '1995-04-01'
+AND      EXISTS
+         (
+                SELECT *
+                FROM   lineitem
+                WHERE  l_orderkey = o_orderkey
+                AND    l_commitdate < l_receiptdate )
+GROUP BY o_orderp riority
+ORDER BY o_orderpriority;
+
 response= {
   "id": "chatcmpl-83tAmcL8l0L2MpTIfN5UHcE65daJk",
   "object": "chat.completion",
@@ -4578,6 +4614,7 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83tAzGW1SUDhKFcoQE58q5EbCBmMB",
@@ -4738,6 +4775,19 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT o_orderpriority,
+       Count(*) AS order_count
+FROM   orders o
+       inner join lineitem l
+               ON o.o_orderkey = l.l_orderkey
+                  AND l.l_commitdate < l.l_receiptdate
+WHERE  o.o_orderdate >= '1995-01-01'
+       AND o.o_orderdate < Date_add('1995-01-0      1', interval 3 month)
+GROUP  BY o_orderpriority
+ORDER  BY o_orderpriority;
+
 response= {
   "id": "chatcmpl-83tBAArAsXOlB0sLS5qftKgjBd3wp",
   "object": "chat.completion",
@@ -4897,6 +4947,22 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT o_orderpriority,
+       Count(CASE
+               WHEN l_commitdate < l_receiptdate THEN 1
+             END) AS order_count
+FROM   orders o
+       left join lineitem l
+              ON o.o_orderkey = l.l_orderkey
+WHERE  o_orderdate >= '1995-01-01'
+       AND o_orderdate < Date_add('1995-01-01', interval 3 month)
+GROUP  BY o_orderpriority
+ORDER  BY o_orderpriority;
+
+
+
 response= {
   "id": "chatcmpl-83tBJ53vYfTO0FWg6DuuMfuPFIuBq",
   "object": "chat.completion",
@@ -5055,6 +5121,24 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU]: QRW
+
+SELECT   o.o_orderpriority,
+         Count(*) AS order_count
+FROM     orders o
+JOIN
+         (
+                         SELECT DISTINCT l_orderkey
+                         FROM            lineitem
+                         WHERE           l_commitdate < l_receiptd ate ) l
+ON       l.l_orderkey = o.o_orderkey
+WHERE    o.o_orderdate >= '1995-01-01'
+AND      o.o_orderdate < date_add('1995-01-01', interval 3 month)
+GROUP BY o.o_orderpriority
+ORDER BY o.o_orderpriority;
+
+
 
 response= {
   "id": "chatcmpl-83tBV5bIaGcYZ6rMCViEuhv8ywQZN",
@@ -5218,6 +5302,61 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT n_name,
+       SUM(l_extendedprice * ( 1 - l_discount )) AS revenue
+FROM   (SELECT *
+        FROM   customer
+        WHERE  c_nationkey IN (SELECT s_nationkey
+                               FROM   supplier
+                               WHERE  s_nationkey IN (SELECT n_nationkey
+                                                      FROM   nation
+                                                      WHERE
+                                      n_regionkey IN (SELECT
+                                      r_regionkey
+                                                      FROM
+                                      region
+                                                      WHERE
+                                      r_name =
+                                                     'MIDDLE EAST')))) AS
+       customer,
+       (SELECT *
+        FROM   orders
+        WHERE  o_orderdate >= '1994-01-01'
+               AND o_orderdate < Date_add('1994-01-01', interval '1' year)) AS
+       orders,
+       (SELECT *
+        FROM   lineitem) AS lineitem,
+       (SELECT *
+        FROM   supplier
+        WHERE  s_nationkey IN (SELECT n_nationkey
+                               FROM   nation
+                               WHERE  n_regionkey IN (SELECT r_regionkey
+                                                      FROM   region
+                                                      WHERE  r_name =
+                                                     'MIDDLE EAST')))
+       AS supplier,
+       (SELECT *
+        FROM   nation
+        WHERE  n_regionkey IN (SELECT r_regionkey
+                               FROM   region
+                               WHERE  r_name = 'MIDDLE EAST')) AS nation,
+       (SELECT *
+        FROM   region
+        WHERE  r_name = 'MIDDLE EAST') AS region
+WHERE  c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+       AND l_suppkey = s_suppkey
+       AND c_nationkey = s_nationkey
+       AND s_nationkey = n_nationkey
+       AND n_regionkey = r_regionkey
+GROUP  BY n_name
+ORDER  BY revenue DESC; 
+
+
+
+
 response= {
   "id": "chatcmpl-83tBfaCh8aOpw99ll68KGs5dF1ROn",
   "object": "chat.completion",
@@ -5379,6 +5518,35 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU]: QRW
+
+CREATE TEMPORARY TABLE temp_table AS
+  SELECT n_name,
+         l_extendedprice,
+         l_discount
+  FROM   customer
+         join orders
+           ON c_custkey = o_custkey
+         join lineitem
+           ON l_orderkey = o_orderkey
+         join supplier
+           ON l_suppkey = s_suppkey
+         join nation
+           ON c_nationkey = s_nationkey
+              AND s_nationkey = n_nationkey
+         join region
+           ON n_regionkey = r_regionkey
+  WHERE  r_name = 'MIDDLE EAST'
+         AND o_orderdate >= '1994-01-01'
+         AND o_orderdate < Date_add('1994-01-01', interval 1 year); 
+
+
+SELECT n_name,
+       Sum(l_extendedprice * ( 1 - l_discount )) AS revenue
+FROM   temp_table
+GROUP  BY n_name
+ORDER  BY revenue DESC; 
 
 response= {
   "id": "chatcmpl-83tBvi3Jy1YC3s3gob4aUASmUsiNu",
@@ -5542,6 +5710,28 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT n_name,
+       Sum(l_extendedprice * ( 1 - l_discount )) AS revenue
+FROM   customer,
+       orders,
+       lineitem,
+       supplier,
+       nation,
+       region
+WHERE  c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+       AND l_suppkey = s_suppkey
+       AND c_nationkey = s_nationkey
+       AND s_nationkey = n_nationkey
+       AND n_regionkey = r_regionkey
+       AND r_name = 'MIDDLE EAST'
+       AND o_orderdate >= '1994-01-01'
+       AND o_orderdate < '1995-01-01'
+GROUP  BY n_name
+ORDER  BY revenue DESC; 
+
 response= {
   "id": "chatcmpl-83tCBgjb28EhhxWWEStgL0Ttppp9Z",
   "object": "chat.completion",
@@ -5703,6 +5893,28 @@ order by
 
 
  ---------------------------------------------- 
+
+[HANU]: QRW
+
+SELECT nation.n_name,
+       SUM(lineitem.l_extendedprice * ( 1 - lineitem.l_discount )) AS revenue
+FROM   customer
+       join orders
+         ON customer.c_custkey = orders.o_custkey
+       join lineitem
+         ON orders.o_orderkey = lineitem.l_orderkey
+       join supplier
+         ON lineitem.l_suppkey = supplier.s_suppkey
+       join nation
+         ON customer.c_nationkey = supplier.s_nationkey
+            AND supplier.s_nationkey = nation.n_nationkey
+       join region
+         ON nation.n_regionkey = region.r_regionkey
+WHERE  region.r_name = 'MIDDLE EAST'
+       AND orders.o_orderdate >= '1994-01-01'
+       AND orders.o_orderdate < Date_add('1994-01-01', interval 1 year)
+GROUP  BY nation.n_name
+ORDER  BY revenue DESC; 
 
 response= {
   "id": "chatcmpl-83tCPlg0olRDwXpvr9x0AEqgdxzkX",
@@ -5866,6 +6078,28 @@ order by
 
  ---------------------------------------------- 
 
+[HANU]: QRW
+
+SELECT nation.n_name,
+       SUM(lineitem.l_extendedprice * ( 1 - lineitem.l_discount )) AS revenue
+FROM   customer
+       join orders
+         ON customer.c_custkey = orders.o_custkey
+       join lineitem
+         ON orders.o_orderkey = lineitem.l_orderkey
+       join supplier
+         ON lineitem.l_suppkey = supplier.s_suppkey
+            AND customer.c_nationkey = supplier.s_nationkey
+       join nation
+         ON supplier.s_nationkey = nation.n_nationkey
+       join region
+         ON nation.n_regionkey = region.r_regionkey
+WHERE  region.r_name = 'MIDDLE EAST'
+       AND orders.o_orderdate >= '1994-01-01'
+       AND orders.o_orderdate < Date_add('1994-01-01', interval 1 year)
+GROUP  BY nation.n_name
+ORDER  BY revenue DESC; 
+
 response= {
   "id": "chatcmpl-83tCdl5a3r8KvyJ4FeBLooDEmQkW5",
   "object": "chat.completion",
@@ -6027,6 +6261,30 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT n_name,
+       SUM(CASE
+             WHEN r_name = 'MIDDLE EAST'
+                  AND o_orderdate >= '1994-01-01'
+                  AND o_orderdate < Date_add('1994-01-01', interval 1 year) THEN
+             l_extendedprice * ( 1 - l_discount )
+             ELSE 0
+           END) AS revenue
+FROM   customer,
+       orders,
+       lineitem,
+       supplier,
+       nation,
+       region
+WHERE  c_custkey = o_custkey
+       AND l_orderkey = o_orderkey
+       AND l_suppkey = s_suppkey
+       AND c_nationkey = s_nationkey
+       AND s_nationkey = n_nationkey
+       AND n_regionkey = r_regionkey
+GROUP  BY n_name
+ORDER  BY revenue DESC; 
 
 response= {
   "id": "chatcmpl-83tCqvqu0YOHOpj2eanLEfbN7NJST",
@@ -6189,6 +6447,31 @@ order by
 
 
  ---------------------------------------------- 
+[HANU]: QRW
+
+SELECT n_name,
+       SUM(revenue) AS total_revenue
+FROM   (SELECT n_name,
+               l_extendedprice * ( 1 - l_discount ) AS revenue
+        FROM   customer,
+               orders,
+               lineitem,
+               supplier,
+               nation,
+               region
+        WHERE  c_custkey = o_custkey
+               AND l_orderkey = o_orderkey
+               AND l_suppkey = s_suppkey
+               AND c_nationkey = s_nationkey
+               AND s_nationkey = n_nationkey
+               AND n_regionkey = r_regionkey
+               AND r_name = 'MIDDLE EAST'
+               AND o_orderdate >= '1994-01-01'
+               AND o_orderdate < Date_add('1994-01-01', interval '1' year)) AS
+       derived_table
+GROUP  BY n_name
+ORDER  BY total_revenue DESC; 
+
 
 response= {
   "id": "chatcmpl-83tD1wubEuriuMJt3KrPLPvjV0k6m",
@@ -6337,6 +6620,8 @@ where
 
  ---------------------------------------------- 
 
+[HANU]: NO_QRW
+
 response= {
   "id": "chatcmpl-83tDGwxIAMR2mOc30IFZ9q8nxqXjF",
   "object": "chat.completion",
@@ -6483,6 +6768,8 @@ where
 
 
  ---------------------------------------------- 
+
+[HANU]: NO_QRW
 
 response= {
   "id": "chatcmpl-83tDUE9fWza0Pv7MPp6EYALM75EpM",
