@@ -10,6 +10,11 @@ mysql test --host 127.0.0.1 --port 4000 -u root < ~/tuner/tpch-queries/schema.sq
 mysql test --local-infile=1  --host 127.0.0.1 --port 4000 -u root < ~/tuner/tpch-queries/load.sql
 ```
 
+## Alternate easy way of creating the database and loading the tables.
+```
+load_data.sh
+```
+
 ## run the tuner
 ```
 python3 -u tuner.py | tee /tmp/tuner.out
