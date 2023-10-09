@@ -1,8 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"os"
+	"fmt"
 	"github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/ast"
 	_ "github.com/pingcap/tidb/parser/test_driver"
@@ -64,18 +64,23 @@ func parse(sql string) (ast.StmtNode, error) {
 	return stmtNodes[0], nil
 }
 
-//export analyze
-func analyze(sql string) {
+
+func analyze_internal(sql string) {
+	fmt.Println(sql)
 	astNode, err := parse(sql)
 	if err != nil {
 		fmt.Printf("parse error: %v\n", err.Error())
 		return
 	}
 
-	tpyeList := typeVisitor(astNode)
-	fmt.Printf("tpyeList = ", tpyeList)
+	typeList := typeVisitor(astNode)
+	fmt.Printf("typeList = ", typeList)
+	fmt.Println("\n Column Parse, Dont!")
+}
 
-	fmt.Println("\n Column Parse, Done!")
+//export analyze
+func analyze(sql *C.char) {
+	analyze_internal(C.GoString(sql))
 }
 
 func hello() {
@@ -89,5 +94,5 @@ func main() {
 	}
 	sql := os.Args[1]
 
-	analyze(sql)
+	analyze_internal(sql)
 }
