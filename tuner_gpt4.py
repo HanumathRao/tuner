@@ -68,10 +68,6 @@ print ("\n ----------------- results -------------------- \n")
 
 
 def apply_rewrite(sql, rw):
-    sql = sql.replace('\n',' ')
-    lib = ctypes.CDLL('./analyze.so')  # Or hello.so if on Linux.
-    analyze = lib.analyze
-    lib.analyze(sql.encode("utf-8"))
     skip_gpt = True
     prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
     time.sleep(3)
@@ -100,5 +96,9 @@ for i in range(1, 19):
         continue
     sql = querymap[i]
     print ("SQL = ", sql)
+    sql = sql.replace('\n',' ')
+    lib = ctypes.CDLL('./analyze.so')  # Or hello.so if on Linux.
+    analyze = lib.analyze
+    lib.analyze(sql.encode("utf-8"))
     for rw in rewrites:
         apply_rewrite(sql, rw)
