@@ -1,7 +1,54 @@
-Rewrite the following query by pushing down the single table predicates down to single table scan
-Apply multi phase group by split optimization for the following query
-Apply constant folding optimization for the following query.
-Apply distinct pushdown optimization for the following query
-Apply outer join to inner join conversion optimization for the following query 
-Convert aggregate with filter to aggregate with case clause for the following query
-Convert aggregate distinct to aggregate on a group by derived table for the following query
+{
+  "prompts": [
+    {
+      "prompt": "Rewrite the following query by pushing down the single table predicates down to single table scan",
+      "operators": [
+        "filter"
+      ]
+    },
+    {
+      "prompt": "Apply multi phase group by split optimization for the following query",
+      "operators": [
+        "group_by",
+        "aggregate"
+      ]
+    },
+    {
+      "prompt": "Apply constant folding optimization for the following query",
+      "operators": [
+        "constant"
+      ]
+    },
+    {
+      "prompt": "Apply distinct pushdown optimization for the following query",
+      "operators": [
+        "distinct",
+        "group_by",
+        "aggregate"
+      ]
+    },
+    {
+      "prompt": "Apply outer join to inner join conversion optimization for the following query",
+      "operators": [
+        "left_join",
+        "join",
+        "right_join",
+        "outer_join"
+      ]
+    },
+    {
+      "prompt": "Convert aggregate with filter to aggregate with case clause for the following query",
+      "operators": [
+        "aggregate",
+        "group_by"
+      ]
+    },
+    {
+      "prompt": "Convert aggregate distinct to aggregate on a group by derived table for the following query",
+      "operators": [
+        "aggregate",
+        "group_by"
+      ]
+    }
+  ]
+}

@@ -5,9 +5,11 @@ from typing import List
 import mysql.connector
 import time
 import ctypes
+import json
 
 from mysql.connector import connect, MySQLConnection
 from mysql.connector.cursor import MySQLCursor
+from collections import defaultdict
 
 def get_connection(autocommit: bool = True) -> MySQLConnection:
     connection = connect(host='127.0.0.1',
@@ -19,16 +21,18 @@ def get_connection(autocommit: bool = True) -> MySQLConnection:
     return connection
 
 def read_file_lines(file_path):
-    lines = []
+    prompt_dict = defaultdict(list)
     try:
         with open(file_path, 'r') as file:
-            lines = file.readlines()
+            data = json.load(file)
+            for prompt in data["prompts"]:
+                for operator in prompt["operators"]:
+                    prompt_dict[operator].append(prompt["prompt"])
     except FileNotFoundError:
         print(f"File '{file_path}' not found.")
     except Exception as e:
         print(f"An error occurred: {str(e)}")
-
-    return lines
+    return prompt_dict
 
 def read_string_from_file(file_path):
     try:
@@ -66,6 +70,8 @@ def get_cost(sql) -> float:
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print ("\n ----------------- results -------------------- \n")
 
+def applicable_rewrites():
+    return [prompt for list in rewrites.values() for prompt in list]
 
 def apply_rewrite(sql, rw):
     skip_gpt = True
@@ -97,8 +103,9 @@ for i in range(1, 19):
     sql = querymap[i]
     print ("SQL = ", sql)
     sql = sql.replace('\n',' ')
-    lib = ctypes.CDLL('./analyze.so')  # Or hello.so if on Linux.
-    analyze = lib.analyze
-    lib.analyze(sql.encode("utf-8"))
-    for rw in rewrites:
+    lib = ctypes.CDLL('./analyze.so')
+    lib.analyze.restype = ctypes.c_char_p
+    print(lib.analyze(sql.encode("utf-8")))
+    for rw in applicable_rewrites():
+        print("rewrite: " + rw)
         apply_rewrite(sql, rw)

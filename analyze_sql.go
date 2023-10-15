@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"fmt"
+	"encoding/json"
 	"github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/ast"
 	_ "github.com/pingcap/tidb/parser/test_driver"
@@ -60,27 +61,35 @@ func parse(sql string) (ast.StmtNode, error) {
 		return nil, err
 	}
 
-	fmt.Println(stmtNodes[0])
 	return stmtNodes[0], nil
 }
 
 
-func analyze_internal(sql string) {
-	fmt.Println(sql)
+func analyze_internal(sql string) string {
 	astNode, err := parse(sql)
 	if err != nil {
 		fmt.Printf("parse error: %v\n", err.Error())
-		return
+		return ""
 	}
 
 	typeList := typeVisitor(astNode)
-	fmt.Printf("typeList = ", typeList)
-	fmt.Println("\n Column Parse, Dont!")
+	
+	var m = make(map[string]bool)
+	var a = []string{}
+
+	for _, value := range typeList { 
+		if !m[value] {
+			a = append(a, value)
+			m[value] = true
+		}
+    	}
+	var urlsJson, _ = json.Marshal(a)
+        return string(urlsJson)
 }
 
 //export analyze
-func analyze(sql *C.char) {
-	analyze_internal(C.GoString(sql))
+func analyze(sql *C.char) *C.char {
+	return C.CString(analyze_internal(C.GoString(sql)))
 }
 
 func hello() {
