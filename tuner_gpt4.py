@@ -70,8 +70,8 @@ def get_cost(sql) -> float:
 openai.api_key = os.getenv("OPENAI_API_KEY")
 print ("\n ----------------- results -------------------- \n")
 
-def applicable_rewrites():
-    return [prompt for list in rewrites.values() for prompt in list]
+def applicable_rewrites(keys):
+    return set([prompt for key in keys for prompt in rewrites[key] ])
 
 def apply_rewrite(sql, rw):
     skip_gpt = True
@@ -94,7 +94,6 @@ def apply_rewrite(sql, rw):
     original_cost = get_cost(sql)
     new_cost = get_cost(new_sql)
     if new_cost > 0 and new_cost < original_cost:
-        #print("QUERY =", i, " ORIGINAL COST = ", original_cost, " NEW COST = ", new_cost, " PROMPT : ", rw)
         print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
 
 for i in range(1, 19):
@@ -105,7 +104,9 @@ for i in range(1, 19):
     sql = sql.replace('\n',' ')
     lib = ctypes.CDLL('./analyze.so')
     lib.analyze.restype = ctypes.c_char_p
-    print(lib.analyze(sql.encode("utf-8")))
-    for rw in applicable_rewrites():
+    key_string = lib.analyze(sql.encode("utf-8"))
+    print(key_string.decode("utf-8"))
+    keys = json.loads(key_string.decode("utf-8"))
+    for rw in applicable_rewrites(keys):
         print("rewrite: " + rw)
         apply_rewrite(sql, rw)

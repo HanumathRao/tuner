@@ -83,8 +83,8 @@ func analyze_internal(sql string) string {
 			m[value] = true
 		}
     	}
-	var urlsJson, _ = json.Marshal(a)
-        return string(urlsJson)
+	var tagsJson, _ = json.Marshal(a)
+        return string(tagsJson)
 }
 
 //export analyze
