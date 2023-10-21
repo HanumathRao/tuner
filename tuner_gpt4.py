@@ -26,8 +26,9 @@ def read_file_lines(file_path):
         with open(file_path, 'r') as file:
             data = json.load(file)
             for prompt in data["prompts"]:
-                for operator in prompt["operators"]:
-                    prompt_dict[operator].append(prompt["prompt"])
+                if prompt["enabled"].lower() == 'true':
+                    for operator in prompt["operators"]:
+                        prompt_dict[operator].append(prompt["prompt"])
     except FileNotFoundError:
         print(f"File '{file_path}' not found.")
     except Exception as e:
@@ -52,6 +53,9 @@ for i in range(1, 19):
     querymap[i] = query
 
 rewrites = read_file_lines('prompts.txt')
+print ("\n --------------prompts selected--------------- \n")
+print(rewrites)
+print ("\n --------------------------------------------- \n")
 
 def total_cost(steps) -> float:
     return sum(float(value[2]) for value in steps)

@@ -4,27 +4,31 @@
       "prompt": "Rewrite the following query by pushing down the single table predicates down to single table scan",
       "operators": [
         "Filter"
-      ]
+      ],
+      "enabled": "true"
     },
     {
       "prompt": "Apply multi phase group by split optimization for the following query",
       "operators": [
         "GroupBy",
 	"Join"
-      ]
+      ],
+      "enabled": "true"
     },
     {
       "prompt": "Apply constant folding optimization for the following query",
       "operators": [
         "Constant"
-      ]
+      ],
+      "enabled":"false"
     },
     {
       "prompt": "Apply distinct pushdown optimization for the following query",
       "operators": [
         "Distinct",
-        "GroupBy",
-      ]
+        "GroupBy"
+      ],
+      "enabled":"true"
     },
     {
       "prompt": "Apply outer join to inner join conversion optimization for the following query",
@@ -32,20 +36,23 @@
         "LeftJoin",
 	"RightJoin",
         "OuterJoin"
-      ]
+      ],
+      "enabled":"true"
     },
     {
       "prompt": "Convert aggregate with filter to aggregate with case clause for the following query",
       "operators": [
         "Aggregate"
-      ]
+      ],
+      "enabled": "false"
     },
     {
       "prompt": "Convert aggregate distinct to aggregate on a group by derived table for the following query",
       "operators": [
         "Aggregate",
         "Distinct"
-      ]
+      ],
+      "enabled":"true"
     }
   ]
 }
