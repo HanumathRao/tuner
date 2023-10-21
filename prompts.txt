@@ -9,45 +9,42 @@
     {
       "prompt": "Apply multi phase group by split optimization for the following query",
       "operators": [
-        "group_by",
-        "Aggregate"
+        "GroupBy",
+	"Join"
       ]
     },
     {
       "prompt": "Apply constant folding optimization for the following query",
       "operators": [
-        "constant"
+        "Constant"
       ]
     },
     {
       "prompt": "Apply distinct pushdown optimization for the following query",
       "operators": [
-        "distinct",
-        "group_by",
-        "Aggregate"
+        "Distinct",
+        "GroupBy",
       ]
     },
     {
       "prompt": "Apply outer join to inner join conversion optimization for the following query",
       "operators": [
-        "left_join",
-        "Join",
-        "right_join",
-        "outer_join"
+        "LeftJoin",
+	"RightJoin",
+        "OuterJoin"
       ]
     },
     {
       "prompt": "Convert aggregate with filter to aggregate with case clause for the following query",
       "operators": [
-        "Aggregate",
-        "group_by"
+        "Aggregate"
       ]
     },
     {
       "prompt": "Convert aggregate distinct to aggregate on a group by derived table for the following query",
       "operators": [
         "Aggregate",
-        "group_by"
+        "Distinct"
       ]
     }
   ]
