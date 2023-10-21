@@ -27,8 +27,15 @@ def read_file_lines(file_path):
             data = json.load(file)
             for prompt in data["prompts"]:
                 if prompt["enabled"].lower() == 'true':
+                    key = []
                     for operator in prompt["operators"]:
-                        prompt_dict[operator].append(prompt["prompt"])
+                        if (prompt["type"].lower() == 'and'):
+                            key.append(operator)
+                        else:
+                            prompt_dict[operator].append(prompt["prompt"])
+                    if prompt["type"].lower() == 'and':
+                        key.sort()
+                        prompt_dict[",".join(key)].append(prompt["prompt"])
     except FileNotFoundError:
         print(f"File '{file_path}' not found.")
     except Exception as e:
