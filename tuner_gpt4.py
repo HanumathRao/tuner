@@ -89,7 +89,6 @@ def apply_rewrite(sql, rw):
     prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
     time.sleep(3)
     message=[{"role": "user", "content": prompt_value}]
-    print ("\n ---------------------------------------------- \n")
     #print ("prompt_value = ", prompt_value)
     print ("\n ---------------------------------------------- \n")
     if skip_gpt is True:
@@ -118,6 +117,8 @@ for i in range(1, 19):
     key_string = lib.analyze(sql.encode("utf-8"))
     print(key_string.decode("utf-8"))
     keys = json.loads(key_string.decode("utf-8"))
+    print ("\n ---------------------------------------------- \n")
     for rw in applicable_rewrites(keys):
         print("rewrite: " + rw)
         apply_rewrite(sql, rw)
+    print ("\n ---------------------------------------------- \n")

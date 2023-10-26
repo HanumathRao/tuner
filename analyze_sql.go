@@ -7,7 +7,7 @@ import (
 	"github.com/pingcap/tidb/parser"
 	"github.com/pingcap/tidb/parser/ast"
 	_ "github.com/pingcap/tidb/parser/test_driver"
-	_ "github.com/pingcap/tidb/types/parser_driver"
+	_ "github.com/pingcap/tidb/pkg/types/parser_driver"
 )
 import "C"
 
@@ -16,7 +16,7 @@ type typeAnalysis struct {
 }
 
 func (v *typeAnalysis) analyzeTypes(node ast.Node) (string, bool)  {
-	switch parse_node := node.(type) {
+	switch joinNode := node.(type) {
 	case *ast.BetweenExpr, *ast.BinaryOperationExpr:
 		return "Filter", true
 	case *ast.OrderByClause:
@@ -24,8 +24,15 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) (string, bool)  {
 	case *ast.GroupByClause:
 		return "GroupBy", true
 	case *ast.Join:
-		if (parse_node.Right != nil) {
-			return "Join", true
+		if (joinNode.Right != nil) {
+			switch joinNode.Tp {
+				case ast.LeftJoin:
+					return "LeftJoin", true
+				case ast.RightJoin:
+					return "RightJoin", true
+				default:
+					return "Join", true
+			}
 		}
 	case *ast.AggregateFuncExpr:
 		return "Aggregate", true
