@@ -1,0 +1,3 @@
+["Aggregate","Filter","Join","GroupBy","Having","OrderBy"]
+rewrite: Apply distinct pushdown optimization for the following query
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan

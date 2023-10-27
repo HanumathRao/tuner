@@ -1,0 +1,4 @@
+["Aggregate","LeftJoin","Filter","GroupBy","OrderBy"]
+rewrite: Apply outer join to inner join conversion optimization for the following query
+rewrite: Apply distinct pushdown optimization for the following query
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan

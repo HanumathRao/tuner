@@ -6,6 +6,7 @@ import mysql.connector
 import time
 import ctypes
 import json
+import sys
 
 from mysql.connector import connect, MySQLConnection
 from mysql.connector.cursor import MySQLCursor
@@ -52,18 +53,6 @@ def read_string_from_file(file_path):
     except Exception as e:
         print(f"An error occurred: {str(e)}")
 
-schema = read_string_from_file("tpch-queries/schema.sql")
-
-querymap = {}
-for i in range(1, 19):
-    query = read_string_from_file(f"tpch-queries/{i}.sql")
-    querymap[i] = query
-
-rewrites = read_file_lines('prompts.txt')
-print ("\n --------------prompts selected--------------- \n")
-print(rewrites)
-print ("\n --------------------------------------------- \n")
-
 def total_cost(steps) -> float:
     return sum(float(value[2]) for value in steps)
 
@@ -78,21 +67,19 @@ def get_cost(sql) -> float:
         #print(error)
         return -1.0
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
-print ("\n ----------------- results -------------------- \n")
 
-def applicable_rewrites(keys):
+def applicable_rewrites(rewrites, keys):
     return set([prompt for key in keys for prompt in rewrites[key] ])
 
 def apply_rewrite(sql, rw):
     skip_gpt = True
-    prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
+    #prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
+    prompt_value=rw+sql
     time.sleep(3)
     message=[{"role": "user", "content": prompt_value}]
-    #print ("prompt_value = ", prompt_value)
-    print ("\n ---------------------------------------------- \n")
     if skip_gpt is True:
         return
+    openai.api_key = os.getenv("OPENAI_API_KEY")
     response = openai.ChatCompletion.create(
         model="gpt-4",messages=message,temperature=0,max_tokens=1000
     )
@@ -106,19 +93,38 @@ def apply_rewrite(sql, rw):
     if new_cost > 0 and new_cost < original_cost:
         print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
 
-for i in range(1, 19):
-    if i == 15:
-        continue
-    sql = querymap[i]
-    print ("SQL = ", sql)
-    sql = sql.replace('\n',' ')
-    lib = ctypes.CDLL('./analyze.so')
-    lib.analyze.restype = ctypes.c_char_p
-    key_string = lib.analyze(sql.encode("utf-8"))
-    print(key_string.decode("utf-8"))
-    keys = json.loads(key_string.decode("utf-8"))
-    print ("\n ---------------------------------------------- \n")
-    for rw in applicable_rewrites(keys):
-        print("rewrite: " + rw)
-        apply_rewrite(sql, rw)
-    print ("\n ---------------------------------------------- \n")
+def apply_rewrites():
+    n = len(sys.argv)
+    if (n != 2):
+        print ("usage: python3 tuner_gpt4.py <test-directory>")
+        return
+    test_dir = sys.argv[1]
+    rewrites = read_file_lines('prompts.txt')
+
+    query_dir = test_dir+"/queries"
+
+    filelist = open(test_dir+"/filelist", 'r')
+    for onefile in filelist.readlines():
+        onefile = onefile.replace('\n','')
+        query_file = query_dir+"/"+onefile+".sql"
+        f = os.path.join(query_dir, query_file)
+        #if not os.path.isfile(f):
+           #continue
+        sql = read_string_from_file(query_file)
+        sql = sql.replace('\n',' ')
+        lib = ctypes.CDLL('./analyze.so')
+        lib.analyze.restype = ctypes.c_char_p
+        key_string = lib.analyze(sql.encode("utf-8"))
+        result_file = test_dir+"/results/"+onefile+".out"
+        std_file = test_dir+"/std/"+onefile+".out"
+        result_handle = open(result_file, "w")
+        result_handle.write(key_string.decode("utf-8")+"\n")
+        keys = json.loads(key_string.decode("utf-8"))
+        for rw in applicable_rewrites(rewrites,keys):
+            result_handle.write("rewrite: " + rw+"\n")
+            apply_rewrite(sql, rw)
+
+        result_handle.close()
+        os.system("diff "+result_file+" "+std_file)
+apply_rewrites()
+

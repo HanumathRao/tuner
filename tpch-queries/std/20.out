@@ -1,0 +1,2 @@
+["Join","Filter","Aggregate","OrderBy"]
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan
