@@ -21,22 +21,11 @@ def get_connection(autocommit: bool = True) -> MySQLConnection:
     connection.autocommit = autocommit
     return connection
 
-def read_file_lines(file_path):
+def read_prompts(file_path):
     prompt_dict = defaultdict(list)
     try:
         with open(file_path, 'r') as file:
-            data = json.load(file)
-            for prompt in data["prompts"]:
-                if prompt["enabled"].lower() == 'true':
-                    key = []
-                    for operator in prompt["operators"]:
-                        if (prompt["type"].lower() == 'and'):
-                            key.append(operator)
-                        else:
-                            prompt_dict[operator].append(prompt["prompt"])
-                    if prompt["type"].lower() == 'and':
-                        key.sort()
-                        prompt_dict[",".join(key)].append(prompt["prompt"])
+            return json.load(file)
     except FileNotFoundError:
         print(f"File '{file_path}' not found.")
     except Exception as e:
@@ -68,8 +57,22 @@ def get_cost(sql) -> float:
         return -1.0
 
 
-def applicable_rewrites(rewrites, keys):
-    return set([prompt for key in keys for prompt in rewrites[key] ])
+def applicable_rewrites(rewrites, query_markers):
+    prompts = []
+    marker_key_set = set(query_markers)
+    for prompt in rewrites["prompts"]:
+        if prompt["enabled"].lower() == 'true':
+            andTrue = prompt["type"].lower() == 'and'
+            if andTrue:
+               operators_in_query = marker_key_set.intersection(set(prompt["operators"]))
+               if operators_in_query == set(prompt["operators"]):
+                   prompts.append(prompt["prompt"])
+            else:
+               for operator in prompt["operators"]:
+                   if operator in marker_key_set:
+                       prompts.append(prompt["prompt"])
+                       break;
+    return set(prompts)
 
 def apply_rewrite(sql, rw):
     skip_gpt = True
@@ -99,7 +102,7 @@ def apply_rewrites():
         print ("usage: python3 tuner_gpt4.py <test-directory>")
         return
     test_dir = sys.argv[1]
-    rewrites = read_file_lines('prompts.txt')
+    rewrites = read_prompts('prompts.txt')
 
     query_dir = test_dir+"/queries"
 
