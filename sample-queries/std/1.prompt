@@ -1,0 +1,1 @@
+-- candidate for prompt "Rewrite the query by pushing down the single table predicates down to single table scan"

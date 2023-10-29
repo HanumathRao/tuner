@@ -1,0 +1,2 @@
+["Union"]
+rewrite: Apply distinct pushdown optimization for the following query

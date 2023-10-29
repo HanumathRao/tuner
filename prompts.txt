@@ -30,7 +30,8 @@
       "type" : "or",
       "operators": [
         "Distinct",
-        "GroupBy"
+        "GroupBy",
+	"Union"
       ],
       "enabled":"true"
     },

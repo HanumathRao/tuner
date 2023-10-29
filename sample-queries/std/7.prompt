@@ -1,0 +1,1 @@
+-- candidate for Convert aggregate distinct to aggregate on a group by derived table for the following query
