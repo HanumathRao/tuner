@@ -15,36 +15,46 @@ type typeAnalysis struct {
 	typesList []string
 }
 
-func (v *typeAnalysis) analyzeTypes(node ast.Node) (string, bool)  {
-	switch joinNode := node.(type) {
+func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
+	switch node := node.(type) {
 	case *ast.BetweenExpr, *ast.BinaryOperationExpr:
-		return "Filter", true
+		return []string{"Filter"}, true
 	case *ast.OrderByClause:
-		return "OrderBy", true
+		return []string{"OrderBy"}, true
 	case *ast.GroupByClause:
-		return "GroupBy", true
+		return []string {"GroupBy"}, true
+	case *ast.SelectStmt:
+		if (node.AfterSetOperator != nil && (*node.AfterSetOperator == ast.Union || *node.AfterSetOperator == ast.UnionAll)) {
+			return []string {"Union"}, true
+		}
+		if (node.Distinct) {
+			return []string {"Distinct"}, true
+		}
 	case *ast.Join:
-		if (joinNode.Right != nil) {
-			switch joinNode.Tp {
+		if (node.Right != nil) {
+			switch node.Tp {
 				case ast.LeftJoin:
-					return "LeftJoin", true
+					return []string {"LeftJoin"}, true
 				case ast.RightJoin:
-					return "RightJoin", true
+					return []string {"RightJoin"}, true
 				default:
-					return "Join", true
+					return []string {"Join"}, true
 			}
 		}
 	case *ast.AggregateFuncExpr:
-		return "Aggregate", true
+		if (node.Distinct) {
+			return []string {"Aggregate","Distinct"}, true
+		}
+		return []string {"Aggregate"}, true
 	case *ast.HavingClause:
-		return "Having", true
+		return []string {"Having"}, true
 	}
-	return "Other", false
+	return []string {"Other"}, false
 }
 
 func (v *typeAnalysis) Enter(in ast.Node) (ast.Node, bool) {
 	if func_type, ok := v.analyzeTypes(in); ok {
-		v.typesList= append(v.typesList, func_type)
+		v.typesList= append(v.typesList, func_type...)
 	}
 	return in, false
 }
@@ -97,10 +107,6 @@ func analyze_internal(sql string) string {
 //export analyze
 func analyze(sql *C.char) *C.char {
 	return C.CString(analyze_internal(C.GoString(sql)))
-}
-
-func hello() {
-	fmt.Println("Hello world!")
 }
 
 func main() {

@@ -1,0 +1,6 @@
+bug description                                                                            status
+--------------------------------------------------------------------------------------------------------------------------
+query 3) is getting a query marker as filter and not a constant,                           open
+         so constant folding optimization prompt is not triggered
+query 4) needs a union query marker so expectation is not matched                          fixed
+query 7) is having a distinct query marker so not getting expected match                   fixed

@@ -1,4 +1,4 @@
 ["Aggregate","Filter","Join","GroupBy","OrderBy"]
-rewrite: Apply multi phase group by split optimization for the following query
-rewrite: Apply distinct pushdown optimization for the following query
 rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan
+rewrite: Apply distinct pushdown optimization for the following query
+rewrite: Apply multi phase group by split optimization for the following query

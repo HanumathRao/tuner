@@ -1,3 +1,2 @@
 ["Filter"]
 rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan
-rewrite: Apply constant folding optimization for the following query
