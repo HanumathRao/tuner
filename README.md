@@ -27,3 +27,9 @@ Following modules needs to be installed for python
 pip3 install mysql-connector-python
 pip3 install openai
 ```
+
+## compiling analyze.go file.
+
+```
+go build -o analyze.so -buildmode=c-shared analyze_sql.go
+```
