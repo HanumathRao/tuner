@@ -1,2 +1,2 @@
-SELECT id + 1 - 100 as id
+SELECT id + (1 - 10) as id
 FROM orders

@@ -128,6 +128,8 @@ def apply_rewrites():
             apply_rewrite(sql, rw)
 
         result_handle.close()
+        print("\n diff for ",onefile, "\n")
         os.system("diff "+result_file+" "+std_file)
+        print("\n end of diff for ",onefile, "\n")
 apply_rewrites()
 

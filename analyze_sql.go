@@ -11,28 +11,78 @@ import (
 )
 import "C"
 
+// column analysis visitor
+type columnAnalysis struct {
+	columnCount uint64
+}
+
+func (v *columnAnalysis) analyzeColumns(node ast.Node) (uint64, bool) {
+	switch node.(type) {
+	case *ast.ColumnName, *ast.ColumnDef:
+		return 1, true
+	// Temporary fix since visitor is not working for extract. TODO: fix visitor.
+	case *ast.TimeUnitExpr:
+		return 1, true
+	}
+	return 0, true
+}
+
+func (v *columnAnalysis) Enter(in ast.Node) (ast.Node, bool) {
+	if column_count, ok := v.analyzeColumns(in); ok {
+		v.columnCount = v.columnCount+column_count
+	}
+	return in, false
+}
+
+func (v *columnAnalysis) Leave(in ast.Node) (ast.Node, bool) {
+	return in, true
+}
+
+func columnVisitor(rootNode ast.Node) uint64 {
+	v := &columnAnalysis{}
+	rootNode.Accept(v)
+	return v.columnCount
+}
+
+// end of column analysis visitor
 type typeAnalysis struct {
 	typesList []string
 }
 
 func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
-	switch node := node.(type) {
-	case *ast.BetweenExpr, *ast.BinaryOperationExpr:
-		return []string{"Filter"}, true
+	switch nodeType := node.(type) {
+	case *ast.AggregateFuncExpr:
+		if (nodeType.Distinct) {
+			return []string {"Aggregate","Distinct"}, true
+		}
+		return []string {"Aggregate"}, true
+	case ast.ExprNode:
+		columnCount := columnVisitor(node)
+		_, valueExpr := node.(ast.ValueExpr)
+		if (!valueExpr && (columnCount == 0)) {
+			return []string{"Constant"}, true
+		}
 	case *ast.OrderByClause:
 		return []string{"OrderBy"}, true
 	case *ast.GroupByClause:
 		return []string {"GroupBy"}, true
 	case *ast.SelectStmt:
-		if (node.AfterSetOperator != nil && (*node.AfterSetOperator == ast.Union || *node.AfterSetOperator == ast.UnionAll)) {
+		if (nodeType.AfterSetOperator != nil && (*nodeType.AfterSetOperator == ast.Union || *nodeType.AfterSetOperator == ast.UnionAll)) {
 			return []string {"Union"}, true
 		}
-		if (node.Distinct) {
-			return []string {"Distinct"}, true
+		markers := []string{}
+		if (nodeType.Where != nil) {
+			markers = append(markers, "Filter")
+		}
+		if (nodeType.Distinct) {
+			markers = append(markers, "Distinct")
+		}
+		if (len(markers) > 0) {
+			return markers, true
 		}
 	case *ast.Join:
-		if (node.Right != nil) {
-			switch node.Tp {
+		if (nodeType.Right != nil) {
+			switch nodeType.Tp {
 				case ast.LeftJoin:
 					return []string {"LeftJoin"}, true
 				case ast.RightJoin:
@@ -41,11 +91,6 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 					return []string {"Join"}, true
 			}
 		}
-	case *ast.AggregateFuncExpr:
-		if (node.Distinct) {
-			return []string {"Aggregate","Distinct"}, true
-		}
-		return []string {"Aggregate"}, true
 	case *ast.HavingClause:
 		return []string {"Having"}, true
 	}
@@ -90,6 +135,7 @@ func analyze_internal(sql string) string {
 	}
 
 	typeList := typeVisitor(astNode)
+	//fmt.Printf("typeList = ", typeList)
 	
 	var m = make(map[string]bool)
 	var a = []string{}

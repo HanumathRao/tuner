@@ -1,2 +1,2 @@
-["Aggregate","Filter","Join"]
+["Filter","Aggregate","Join","Constant"]
 rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan
