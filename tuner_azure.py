@@ -81,7 +81,6 @@ def applicable_rewrites(rewrites, query_markers):
 
 def apply_rewrite(sql, rw):
     skip_gpt = True
-    #prompt_value="Assuming the following MySQL tables, with their properties:\n#\n#"+schema+"\n#\n### "+rw+sql+" \n"
     prompt_value=rw+sql
     time.sleep(3)
     message=[{"role": "user", "content": prompt_value}]
@@ -106,6 +105,7 @@ def apply_rewrite(sql, rw):
     print ("response=",response)
     print ("\n ---------------------------------------------- \n")
     #TODO: fix code below to extract new SQL if any
+    return
     new_sql = (response.choices[0].message)
     original_cost = get_cost(sql)
     new_cost = get_cost(new_sql)

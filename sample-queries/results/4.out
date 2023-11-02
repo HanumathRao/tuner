@@ -1,2 +1,2 @@
 ["Union"]
-rewrite: Apply distinct pushdown optimization for the following query
+rewrite: Apply distinct pushdown optimization for the following query. Show only rewritten SQL

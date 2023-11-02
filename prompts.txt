@@ -1,7 +1,7 @@
 {
   "prompts": [
     {
-      "prompt": "Rewrite the following query by pushing down the single table predicates down to single table scan",
+      "prompt": "Rewrite the following query by pushing down the single table predicates down to single table scan. Show only rewritten SQL",
       "type" : "and",
       "operators": [
         "Filter"
@@ -9,7 +9,7 @@
       "enabled": "true"
     },
     {
-      "prompt": "Apply multi phase group by split optimization for the following query",
+      "prompt": "Apply multi phase group by split optimization for the following query. Show only rewritten SQL",
       "type": "and",
       "operators": [
         "GroupBy",
@@ -18,7 +18,7 @@
       "enabled": "true"
     },
     {
-      "prompt": "Apply constant folding optimization for the following query",
+      "prompt": "Apply constant folding optimization for the following query. Show only rewritten SQL",
       "type" : "and",
       "operators": [
         "Constant"
@@ -26,7 +26,7 @@
       "enabled":"false"
     },
     {
-      "prompt": "Apply distinct pushdown optimization for the following query",
+      "prompt": "Apply distinct pushdown optimization for the following query. Show only rewritten SQL",
       "type" : "or",
       "operators": [
         "Distinct",
@@ -36,7 +36,7 @@
       "enabled":"true"
     },
     {
-      "prompt": "Apply outer join to inner join conversion optimization for the following query",
+      "prompt": "Rewrite outer join to inner join in this query if it is correct to do so. Show only rewritten SQL",
       "type": "or",
       "operators": [
         "LeftJoin",
@@ -46,7 +46,7 @@
       "enabled":"true"
     },
     {
-      "prompt": "Convert aggregate with filter to aggregate with case clause for the following query",
+      "prompt": "Convert aggregate with filter to aggregate with case clause for the following query. Show only rewritten SQL",
       "type": "and",
       "operators": [
         "Aggregate"
@@ -54,7 +54,7 @@
       "enabled": "false"
     },
     {
-      "prompt": "Convert aggregate distinct to aggregate on a group by derived table for the following query",
+      "prompt": "Convert aggregate distinct to aggregate on a group by derived table for the following query. Show only rewritten SQL",
       "type" : "and",
       "operators": [
         "Aggregate",
