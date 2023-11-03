@@ -1,4 +1,3 @@
-
 import os
 import openai
 import uuid
@@ -79,12 +78,11 @@ def applicable_rewrites(rewrites, query_markers):
                        break;
     return set(prompts)
 
-def apply_rewrite(sql, rw):
-    skip_gpt = True
+def apply_rewrite(sql, rw, skip_openAI):
     prompt_value=rw+sql
     time.sleep(3)
     message=[{"role": "user", "content": prompt_value}]
-    if skip_gpt is True:
+    if skip_openAI is True:
         return
     openai.api_key = os.getenv("OPENAI_API_KEY")
 
@@ -112,13 +110,17 @@ def apply_rewrite(sql, rw):
     if new_cost > 0 and new_cost < original_cost:
         print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
 
-def apply_rewrites():
-    n = len(sys.argv)
-    if (n != 2):
-        print ("usage: python3 tuner_gpt4.py <test-directory>")
-        return
-    test_dir = sys.argv[1]
-    rewrites = read_prompts('prompts.txt')
+def tune_one_query(query_file, rewrites):
+        sql = read_string_from_file(query_file)
+        sql = sql.replace('\n',' ')
+        lib = ctypes.CDLL('./analyze.so')
+        lib.analyze.restype = ctypes.c_char_p
+        key_string = lib.analyze(sql.encode("utf-8"))
+        keys = json.loads(key_string.decode("utf-8"))
+        for rw in applicable_rewrites(rewrites,keys):
+            apply_rewrite(sql, rw, False)
+
+def apply_rewrites(test_dir, rewrites):
 
     query_dir = test_dir+"/queries"
 
@@ -141,11 +143,19 @@ def apply_rewrites():
         keys = json.loads(key_string.decode("utf-8"))
         for rw in applicable_rewrites(rewrites,keys):
             result_handle.write("rewrite: " + rw+"\n")
-            apply_rewrite(sql, rw)
+            apply_rewrite(sql, rw, True)
 
         result_handle.close()
         print("\n diff for ",onefile, "\n")
         os.system("diff "+result_file+" "+std_file)
         print("\n end of diff for ",onefile, "\n")
-apply_rewrites()
 
+rewrites = read_prompts('prompts.txt')
+n = len(sys.argv)
+if (n == 2 and str(sys.argv[1]) != "--h"):
+    apply_rewrites(sys.argv[1], rewrites)
+elif (n == 3 and sys.argv[2] == '--singletest'):
+    tune_one_query(sys.argv[1], rewrites)
+else:
+    print ("usage: python3 tuner.py <test-directory> or \n")
+    print ("usage: python3 tuner.py test_file --singletest")
