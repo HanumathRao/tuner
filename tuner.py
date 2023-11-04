@@ -21,7 +21,7 @@ def get_connection(autocommit: bool = True) -> MySQLConnection:
                          port=4000,
                          user='root',
                          password='',
-                         database='test')
+                         database='tuner_db')
     connection.autocommit = autocommit
     return connection
 
@@ -57,7 +57,7 @@ def get_cost(sql) -> float:
         result = cursor.fetchall()
         return total_cost(result)
     except Exception as error:
-        #print(error)
+        print("No TiDB connection")
         return -1.0
 
 
@@ -96,19 +96,19 @@ def apply_rewrite(sql, rw, skip_openAI):
                                             stop=None
    )
 
-    #response = openai.ChatCompletion.create(
-    #    model="gpt-4",messages=message,temperature=0,max_tokens=1000
-    #)
-    print ("\n ---------------------------------------------- \n")
-    print ("response=",response)
-    print ("\n ---------------------------------------------- \n")
-    #TODO: fix code below to extract new SQL if any
-    return
-    new_sql = (response.choices[0].message)
+    new_sql = (response.choices[0].message.content)
+    new_sql_start = new_sql.find('```')
+    new_sql = new_sql[new_sql_start+3:]
+    skip_prefix = (new_sql.lower()).find('sql')
+    if (skip_prefix != -1):
+        new_sql = new_sql[skip_prefix+3:]
+    new_sql_end = new_sql.find('```')
+    new_sql = new_sql[:new_sql_end]
+    print("original sql = ", sql)
+    print("new_sql = ", new_sql)
     original_cost = get_cost(sql)
     new_cost = get_cost(new_sql)
-    if new_cost > 0 and new_cost < original_cost:
-        print ("ORIGINAL SQL = ",sql, " WITH COST = ", original_cost, "\n REWRITTEN SQL= ",new_sql, " WITH COST= ", new_cost)
+    print (" original cost = ", original_cost, "new_cost =", new_cost)
 
 def tune_one_query(query_file, rewrites):
         sql = read_string_from_file(query_file)

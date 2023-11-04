@@ -1,2 +1,2 @@
 ["Filter","Aggregate","Join"]
-rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Show only rewritten SQL

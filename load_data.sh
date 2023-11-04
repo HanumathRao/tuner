@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ -n $PORT ]; then
-   PORT=3306
+   PORT=4000
 fi
 
 if [ -n $TUNER_DIR ]; then

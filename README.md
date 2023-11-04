@@ -17,7 +17,17 @@ load_data.sh
 
 ## run the tuner
 ```
-python3 -u tuner.py | tee /tmp/tuner.out
+python3 tuner.py test_file --singletest
+to run a tuner on a single query. Note that:
+- TiDB is running and schema used in the query exists in the database.
+- database used is tuner_db. Modify it if it is different
+- PORT is set to 4000 and modify it accordingly.
+
+regression tests
+python3 tuner.py <test-directory>  
+This just tests query markers (does it have joins, filters, ...) and test which rewrite are applicable
+so far we have two regression tests: tpch_queries and sample_queries 
+
 ```
 
 ## python dependencies.
