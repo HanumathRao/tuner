@@ -1,0 +1,89 @@
+prompt: Rewrite the following query by pushing down the single table predicates down to single table scan
+
+ORIG query (49 sec)
+
+SELECT supp_nation,
+       cust_nation,
+       l_year,
+       Sum(volume) AS revenue
+FROM   (SELECT n1.n_name                            AS supp_nation,
+               n2.n_name                            AS cust_nation,
+               Extract(year FROM l_shipdate)        AS l_year,
+               l_extendedprice * ( 1 - l_discount ) AS volume
+        FROM   supplier,
+               lineitem,
+               orders,
+               customer,
+               nation n1,
+               nation n2
+        WHERE  s_suppkey = l_suppkey
+               AND o_orderkey = l_orderkey
+               AND c_custkey = o_custkey
+               AND s_nationkey = n1.n_nationkey
+               AND c_nationkey = n2.n_nationkey
+               AND ( ( n1.n_name = 'JAPAN'
+                       AND n2.n_name = 'INDIA' )
+                      OR ( n1.n_name = 'INDIA'
+                           AND n2.n_name = 'JAPAN' ) )
+               AND l_shipdate BETWEEN '1995-01-01' AND '1996-12-31') AS shipping
+GROUP  BY supp_nation,
+          cust_nation,
+          l_year
+ORDER  BY supp_nation,
+          cust_nation,
+          l_year; 
+
++-------------+-------------+--------+--------------+
+| supp_nation | cust_nation | l_year | revenue      |
++-------------+-------------+--------+--------------+
+| INDIA       | JAPAN       |   1995 | 5611820.3335 |
+| INDIA       | JAPAN       |   1996 | 5822157.4336 |
+| JAPAN       | INDIA       |   1995 | 5493879.7578 |
+| JAPAN       | INDIA       |   1996 | 5144154.4622 |
++-------------+-------------+--------+--------------+
+
+
+
+QRW REWRITTEN QUERY (29 sec)
+
+
+SELECT n1.n_name                                     AS supp_nation,
+       n2.n_name                                     AS cust_nation,
+       Extract(year FROM l.l_shipdate)               AS l_year,
+       Sum(l.l_extendedprice * ( 1 - l.l_discount )) AS revenue
+FROM   supplier s
+       JOIN lineitem l
+         ON s.s_suppkey = l.l_suppkey
+            AND l.l_shipdate BETWEEN '1995-01-01' AND '1996-12-31'
+       JOIN orders o
+         ON o.o_orderkey = l.l_orderkey
+       JOIN customer c
+         ON c.c_custkey = o.o_custkey
+       JOIN nation n1
+         ON s.s_nationkey = n1.n_nationkey
+            AND ( n1.n_name = 'JAPAN'
+                   OR n1.n_name = 'INDIA' )
+       JOIN nation n2
+         ON c.c_nationkey = n2.n_nationkey
+            AND ( n2.n_name = 'JAPAN'
+                   OR n2.n_name = 'INDIA' )
+WHERE  ( n1.n_name = 'JAPAN'
+         AND n2.n_name = 'INDIA' )
+        OR ( n1.n_name = 'INDIA'
+             AND n2.n_name = 'JAPAN' )
+GROUP  BY supp_nation,
+          cust_nation,
+          l_year
+ORDER  BY supp_nation,
+          cust_nation,
+          l_year; 
+
+
++-------------+-------------+--------+--------------+
+| supp_nation | cust_nation | l_year | revenue      |
++-------------+-------------+--------+--------------+
+| INDIA       | JAPAN       |   1995 | 5611820.3335 |
+| INDIA       | JAPAN       |   1996 | 5822157.4336 |
+| JAPAN       | INDIA       |   1995 | 5493879.7578 |
+| JAPAN       | INDIA       |   1996 | 5144154.4622 |
++-------------+-------------+--------+--------------+
