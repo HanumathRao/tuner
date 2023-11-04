@@ -1,0 +1,46 @@
+prompt: Rewrite the following query to extract the case expression to single table conditions
+
+
+
+mysql> SELECT SUM(
+    ->     CASE
+    ->         WHEN c_mktsegment = 'AUTOMOBILE'
+    ->             AND o_orderdate < '1995-03-13'
+    ->             AND l_shipdate > '1995-03-13' THEN l_extendedprice * (1 - l_discount)
+    ->         ELSE 0
+    ->     END
+    -> ) AS revenue
+    -> FROM customer
+    -> JOIN orders ON c_custkey = o_custkey
+    -> JOIN lineitem ON l_orderkey = o_orderkey
+    -> WHERE c_mktsegment = 'AUTOMOBILE'
+    ->     AND o_orderdate < '1995-03-13'
+    ->     AND l_shipdate > '1995-03-13';
++----------------+
+| revenue        |
++----------------+
+| 100004738.1369 |
++----------------+
+1 row in set (0.05 sec)
+
+mysql> select
+    ->         Sum(CASE
+    ->              WHEN c_mktsegment = 'AUTOMOBILE'
+    ->                   AND o_orderdate < '1995-03-13'
+    ->                   AND l_shipdate > '1995-03-13' THEN l_extendedprice *
+    ->                                                      ( 1 - l_discount )
+    ->              ELSE 0
+    ->            end) AS revenue
+    -> from
+    ->      customer,
+    ->      orders,
+    ->      lineitem
+    -> where
+    ->       c_custkey = o_custkey
+    ->      and l_orderkey = o_orderkey;
++----------------+
+| revenue        |
++----------------+
+| 100004738.1369 |
++----------------+
+1 row in set (0.08 sec)
