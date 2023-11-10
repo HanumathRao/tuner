@@ -14,3 +14,9 @@ MySQL use case (rewrite through tuner wirth better actual performance)          
 SQL extraction from openAI is clunky and we need a better response back                    open
 Current code for costing new SQL only works for single SQL rewrite and
         does not handle multi step rewrite that involves creating temp tables.             open
+Improve results that has temp table to use CTE instead. 
+        Something like "can you convert the following temp table SQL using
+        common table expressions:
+        create temptable as select * from t1; select * from temptable A, temptable B;      open
+Implement functional verifier.
+        Some ideas here https://dl.acm.org/doi/10.1145/3514221.3526125
