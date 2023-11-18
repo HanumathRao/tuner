@@ -9,8 +9,8 @@ Visitor need to be fixed for date expressions. Currently, date_add is not
 Fix Filter. Right now it this marker is set if there is a Where clause                     
         regardless if there is single table or not. Also, On clause 
         is not checked.                                                                    open
-TiDB use case (rewrite through tuner wirth better actual performance)                      open
-MySQL use case (rewrite through tuner wirth better actual performance)                     open
+TiDB use case (rewrite through tuner wirth better actual performance)                      fixed
+MySQL use case (rewrite through tuner wirth better actual performance)                     fixed
 SQL extraction from openAI is clunky and we need a better response back                    open
 Current code for costing new SQL only works for single SQL rewrite and
         does not handle multi step rewrite that involves creating temp tables.             open
