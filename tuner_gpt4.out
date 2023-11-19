@@ -721,3 +721,784 @@ rewrite: Apply distinct pushdown optimization for the following query
 
  ---------------------------------------------- 
 
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 	
+	substring(c_phone from 1 for 2) as cntrycode, 	
+	count(*) as numcust, 
+	sum(c_acctbal) as totacctbal 
+from 	
+	customer 
+where 	
+	substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 	
+	and c_acctbal > (
+		select 			
+			avg(c_acctbal) 
+		from 			
+			customer 
+		where 			
+			c_acctbal > 0.00 			
+			and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+	) 	
+	and not exists (
+		select 				
+			* 			
+		from 				
+			orders 			
+		where 				
+			o_custkey = c_custkey 
+	)
+group by 	
+	substring(c_phone from 1 for 2)
+order by 	
+	substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust, 
+    sum(c_acctbal) as totacctbal 
+from 
+    customer 
+where 
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > (
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+    ) 
+    and not exists (
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey
+    ) 
+group by 
+    substring(c_phone from 1 for 2)
+order by 
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+	cntrycode, 
+	count(*) as numcust, 
+	sum(c_acctbal) as totacctbal 
+from 
+	( 
+		select 
+			substring(c_phone from 1 for 2) as cntrycode, 
+			c_acctbal 
+		from 
+			customer 
+		where 
+			substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+			and c_acctbal > (
+				select 
+					avg(c_acctbal) 
+				from 
+					customer 
+				where 
+					c_acctbal > 0.00 
+					and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+			) 
+			and c_custkey not in (
+				select 
+					o_custkey 
+				from 
+					orders 
+			) 	
+	) as custsale 
+group by 
+	cntrycode 
+order by 
+	cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 	
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust,
+    sum(c_acctbal) as totacctbal 
+from 	
+    customer 
+where 	
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > (
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    ) 
+    and not exists (
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey 
+    ) 
+group by 	
+    substring(c_phone from 1 for 2)
+order by 	
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 	substring(c_phone from 1 for 2) as cntrycode, 
+	count(*) as numcust, 
+	sum(c_acctbal) as totacctbal 
+from 	customer 
+where 	substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+	and c_acctbal > (
+		select avg(c_acctbal) 
+		from customer 
+		where c_acctbal > 0.00 
+			and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+	) 
+	and not exists (
+		select * 
+		from orders 
+		where o_custkey = c_custkey 
+	) 
+group by substring(c_phone from 1 for 2) 
+order by substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  WITH avg_cust_bal AS (
+	SELECT 
+		AVG(c_acctbal) as avg_acct_bal 
+	FROM 
+		customer 
+	WHERE 
+		c_acctbal > 0.00 
+		AND substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+), 
+cust_without_orders AS (
+	SELECT 
+		* 
+	FROM 
+		customer 
+	WHERE 
+		NOT EXISTS (
+			SELECT 
+				1 
+			FROM 
+				orders 
+			WHERE 
+				o_custkey = c_custkey 
+		)
+),
+cust_filtered AS (
+	SELECT 
+		substring(c_phone from 1 for 2) as cntrycode, 
+		c_acctbal 
+	FROM 
+		cust_without_orders 
+	WHERE 
+		substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+		AND c_acctbal > (SELECT avg_acct_bal FROM avg_cust_bal)
+)
+SELECT 
+	cntrycode, 
+	COUNT(*) as numcust, 
+	SUM(c_acctbal) as totacctbal 
+FROM 
+	cust_filtered 
+GROUP BY 
+	cntrycode 
+ORDER BY 
+	cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  SELECT 
+    cntrycode, 
+    COUNT(*) AS numcust, 
+    SUM(c_acctbal) AS totacctbal 
+FROM 
+    (
+        SELECT 
+            cntrycode, 
+            c_acctbal 
+        FROM 
+            (
+                SELECT 
+                    SUBSTRING(c_phone FROM 1 FOR 2) AS cntrycode, 
+                    c_acctbal, 
+                    c_custkey 
+                FROM 
+                    customer 
+            ) AS subquery 
+        WHERE 
+            cntrycode IN ('20', '40', '22', '30', '39', '42', '21') 
+            AND c_acctbal > 
+            (
+                SELECT 
+                    AVG(c_acctbal) 
+                FROM 
+                    customer 
+                WHERE 
+                    c_acctbal > 0.00 
+                    AND SUBSTRING(c_phone FROM 1 FOR 2) IN ('20', '40', '22', '30', '39', '42', '21') 
+            ) 
+            AND NOT EXISTS 
+            (
+                SELECT 
+                    * 
+                FROM 
+                    orders 
+                WHERE 
+                    o_custkey = c_custkey 
+            ) 
+    ) AS custsale 
+GROUP BY 
+    cntrycode 
+ORDER BY 
+    cntrycode;
+ original cost =  165517574.35000002 new_cost = 146253030.13000003
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+	substring(c_phone from 1 for 2) as cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal
+from 
+	customer
+where 
+	substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+	and c_acctbal > (
+		select 
+			avg(c_acctbal)
+		from 
+			customer
+		where 
+			c_acctbal > 0.00
+			and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+	)
+	and c_custkey not in (
+		select 
+			o_custkey
+		from 
+			orders
+	)
+group by 
+	substring(c_phone from 1 for 2)
+order by 
+	substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  SELECT  
+    cntrycode,  
+    COUNT(*) AS numcust,  
+    SUM(c_acctbal) AS totacctbal 
+FROM  
+    ( 
+        SELECT  
+            SUBSTRING(c_phone FROM 1 FOR 2) AS cntrycode,  
+            c_acctbal 
+        FROM  
+            customer 
+        WHERE  
+            SUBSTRING(c_phone FROM 1 FOR 2) IN ('20', '40', '22', '30', '39', '42', '21') 
+            AND c_acctbal >  
+                ( 
+                    SELECT  
+                        AVG(c_acctbal) 
+                    FROM  
+                        customer 
+                    WHERE  
+                        c_acctbal > 0.00 
+                        AND SUBSTRING(c_phone FROM 1 FOR 2) IN ('20', '40', '22', '30', '39', '42', '21') 
+                ) 
+            AND c_custkey NOT IN 
+                (
+                    SELECT  
+                        o_custkey 
+                    FROM  
+                        orders 
+                )
+    ) AS custsale 
+GROUP BY  
+    cntrycode 
+ORDER BY  
+    cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal 
+from 
+	(
+		select 
+			substring(c_phone from 1 for 2) as cntrycode, 
+			c_acctbal 
+		from 
+			customer 
+		where 
+			substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+			and c_acctbal > (
+				select 
+					avg(c_acctbal) 
+				from 
+					customer 
+				where 
+					c_acctbal > 0.00 
+					and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+			) 
+			and c_custkey not in (
+				select 
+					o_custkey 
+				from 
+					orders 
+			) 
+	) as custsale 
+group by 
+	cntrycode 
+order by 
+	cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+	cntrycode,
+	count(*) as numcust,
+	sum(c_acctbal) as totacctbal 
+from 
+	(
+		select 
+			substring(c_phone from 1 for 2) as cntrycode, 
+			c_acctbal 
+		from 
+			customer 
+		where 
+			substring(c_phone from 1 for 2) in 
+				('20', '40', '22', '30', '39', '42', '21') 
+			and c_acctbal > (
+				select 
+					avg(c_acctbal) 
+				from 
+					customer 
+				where 
+					c_acctbal > 0.00 
+					and substring(c_phone from 1 for 2) in 
+						('20', '40', '22', '30', '39', '42', '21')
+			) 
+			and c_custkey not in (
+				select 
+					o_custkey 
+				from 
+					orders 
+			) 
+	) as custsale 
+group by 
+	cntrycode 
+order by 
+	cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  SELECT 
+    cntrycode, 
+    COUNT(*) AS numcust, 
+    SUM(c_acctbal) AS totacctbal 
+FROM 
+    (
+        SELECT 
+            SUBSTRING(c_phone FROM 1 FOR 2) AS cntrycode, 
+            c_acctbal 
+        FROM 
+            customer 
+        WHERE 
+            c_acctbal > (
+                SELECT 
+                    AVG(c_acctbal) 
+                FROM 
+                    customer 
+                WHERE 
+                    c_acctbal > 0.00 
+                    AND SUBSTRING(c_phone FROM 1 FOR 2) IN ('20', '40', '22', '30', '39', '42', '21') 
+            ) 
+            AND NOT EXISTS (
+                SELECT 
+                    1 
+                FROM 
+                    orders 
+                WHERE 
+                    o_custkey = c_custkey 
+            ) 
+    ) AS custsale 
+WHERE 
+    cntrycode IN ('20', '40', '22', '30', '39', '42', '21') 
+GROUP BY 
+    cntrycode 
+ORDER BY 
+    cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust, 
+    sum(c_acctbal) as totacctbal 
+from 
+    customer 
+where 
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > ( 
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    ) 
+    and not exists ( 
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey 
+    ) 
+group by 
+    substring(c_phone from 1 for 2)
+order by 
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust, 
+    sum(c_acctbal) as totacctbal 
+from 
+    customer 
+where 
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > ( 
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    ) 
+    and not exists ( 
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey 
+    ) 
+group by 
+    substring(c_phone from 1 for 2) 
+order by 
+    cntrycode;
+ original cost =  165517574.35000002 new_cost = 165558284.55
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    cntrycode, 
+    count(*) as numcust, 
+    sum(c_acctbal) as totacctbal 
+from 
+    ( 
+        select 
+            cntrycode, 
+            c_acctbal 
+        from 
+            (
+                select 
+                    substring(c_phone from 1 for 2) as cntrycode,
+                    c_acctbal,
+                    c_custkey
+                from 
+                    customer
+            ) as cust 
+        where 
+            cntrycode in ('20', '40', '22', '30', '39', '42', '21') 
+            and c_acctbal > 
+            (
+                select 
+                    avg(c_acctbal) 
+                from 
+                    (
+                        select 
+                            c_acctbal
+                        from 
+                            customer
+                        where 
+                            c_acctbal > 0.00 
+                            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+                    ) as avg_bal
+            ) 
+            and not exists 
+            (
+                select 
+                    * 
+                from 
+                    orders 
+                where 
+                    o_custkey = cust.c_custkey 
+            ) 
+    ) as custsale 
+group by 
+    cntrycode 
+order by 
+    cntrycode; 
+
+ original cost =  165517574.35000002 new_cost = 146253030.13000003
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust, 
+    sum(c_acctbal) as totacctbal 
+from 
+    customer 
+where 
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > (
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+    ) 
+    and not exists (
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey 
+    ) 
+group by 
+    substring(c_phone from 1 for 2) 
+order by 
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 	
+    substring(c_phone from 1 for 2) as cntrycode, 	
+    count(*) as numcust, 	
+    sum(c_acctbal) as totacctbal 
+from 	
+    customer
+where 		
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 		
+    and c_acctbal > (
+        select 				
+            avg(c_acctbal) 			
+        from 				
+            customer 			
+        where 				
+            c_acctbal > 0.00 				
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 		
+    ) 		
+    and not exists (
+        select 				
+            * 			
+        from 				
+            orders 			
+        where 				
+            o_custkey = c_custkey 		
+    )
+group by 	
+    substring(c_phone from 1 for 2)
+order by 	
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust, 
+    sum(c_acctbal) as totacctbal 
+from 
+    customer 
+where 
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > (
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    ) 
+    and not exists (
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey 
+    ) 
+group by 
+    substring(c_phone from 1 for 2) 
+order by 
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+Already optimized sql so no optimization is done
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  WITH avg_balance AS (
+	SELECT avg(c_acctbal) as avg_bal
+	FROM customer
+	WHERE c_acctbal > 0.00 
+	AND substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+),
+cust_without_orders AS (
+	SELECT c_custkey, substring(c_phone from 1 for 2) as cntrycode, c_acctbal
+	FROM customer
+	WHERE NOT EXISTS (
+		SELECT 1
+		FROM orders
+		WHERE o_custkey = c_custkey
+	) 
+	AND substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+)
+
+SELECT cntrycode, count(*) as numcust, sum(c_acctbal) as totacctbal 
+FROM cust_without_orders, avg_balance
+WHERE c_acctbal > avg_bal
+GROUP BY cntrycode
+ORDER BY cntrycode;
+ original cost =  165517574.35000002 new_cost = 210938621.87000003
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 	cntrycode, 	
+        count(*) as numcust, 	
+        sum(c_acctbal) as totacctbal 
+from 	( 
+            select 	substring(c_phone from 1 for 2) as cntrycode, 	
+                    c_acctbal 
+            from 	customer 
+            where 	substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+            and c_acctbal > (
+                                select avg(c_acctbal) 
+                                from customer 
+                                where c_acctbal > 0.00 
+                                and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+                            ) 
+            and c_custkey not in (
+                                    select o_custkey 
+                                    from orders 
+                                 ) 	
+        ) as custsale 
+group by cntrycode 
+order by cntrycode;
+ original cost =  165517574.35000002 new_cost = 165517574.35000002
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal 
+from 	( 		
+    select 			c_phone_prefix as cntrycode, 			c_acctbal 		
+    from 			customer 		
+    where 			c_phone_prefix in ('20', '40', '22', '30', '39', '42', '21') 			
+    and c_acctbal > ( 				
+        select 					avg(c_acctbal) 				
+        from 					customer 				
+        where 					c_acctbal > 0.00 					
+        and c_phone_prefix in ('20', '40', '22', '30', '39', '42', '21') 			
+    ) 			
+    and not exists ( 				
+        select 					1 				
+        from 					orders 				
+        where 					o_custkey = c_custkey 			
+    ) 	
+) as custsale 
+group by 	cntrycode 
+order by 	cntrycode; 
+No TiDB connection
+ original cost =  165517574.35000002 new_cost = -1.0
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+original sql =  select 	cntrycode, 	count(*) as numcust, 	sum(c_acctbal) as totacctbal from 	( 		select 			substring(c_phone from 1 for 2) as cntrycode, 			c_acctbal 		from 			customer 		where 			substring(c_phone from 1 for 2) in 				('20', '40', '22', '30', '39', '42', '21') 			and c_acctbal > ( 				select 					avg(c_acctbal) 				from 					customer 				where 					c_acctbal > 0.00 					and substring(c_phone from 1 for 2) in 						('20', '40', '22', '30', '39', '42', '21') 			) 			and not exists ( 				select 					* 				from 					orders 				where 					o_custkey = c_custkey 			) 	) as custsale group by 	cntrycode order by 	cntrycode; 
+new_sql =  select 
+    substring(c_phone from 1 for 2) as cntrycode, 
+    count(*) as numcust,
+    sum(c_acctbal) as totacctbal 
+from 
+    customer 
+where 
+    substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21') 
+    and c_acctbal > (
+        select 
+            avg(c_acctbal) 
+        from 
+            customer 
+        where 
+            c_acctbal > 0.00 
+            and substring(c_phone from 1 for 2) in ('20', '40', '22', '30', '39', '42', '21')
+    ) 
+    and not exists (
+        select 
+            * 
+        from 
+            orders 
+        where 
+            o_custkey = c_custkey 
+    ) 
+group by 
+    substring(c_phone from 1 for 2) 
+order by 
+    substring(c_phone from 1 for 2);
+ original cost =  165517574.35000002 new_cost = 232217167.42000005

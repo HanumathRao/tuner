@@ -97,13 +97,16 @@ def apply_rewrite(sql, rw, skip_openAI):
    )
 
     new_sql = (response.choices[0].message.content)
-    new_sql_start = new_sql.find('```')
-    new_sql = new_sql[new_sql_start+3:]
-    skip_prefix = (new_sql.lower()).find('sql')
-    if (skip_prefix != -1):
-        new_sql = new_sql[skip_prefix+3:]
-    new_sql_end = new_sql.find('```')
-    new_sql = new_sql[:new_sql_end]
+    if new_sql == "NO_OPTIMIZATION":
+        print("Already optimized sql so no optimization is done")
+        return
+    #new_sql_start = new_sql.find('```')
+    #new_sql = new_sql[new_sql_start+3:]
+    #skip_prefix = (new_sql.lower()).find('sql')
+    #if (skip_prefix != -1):
+    #    new_sql = new_sql[skip_prefix+3:]
+    #new_sql_end = new_sql.find('```')
+    #new_sql = new_sql[:new_sql_end]
     print("original sql = ", sql)
     print("new_sql = ", new_sql)
     original_cost = get_cost(sql)
@@ -118,6 +121,7 @@ def tune_one_query(query_file, rewrites):
         key_string = lib.analyze(sql.encode("utf-8"))
         keys = json.loads(key_string.decode("utf-8"))
         for rw in applicable_rewrites(rewrites,keys):
+            print("rewrite:", rw)
             apply_rewrite(sql, rw, False)
 
 def apply_rewrites(test_dir, rewrites):
