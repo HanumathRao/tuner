@@ -2,11 +2,12 @@ import os
 import openai
 import uuid
 from typing import List
-import mysql.connector
+import mysql
 import time
 import ctypes
 import json
 import sys
+import time
 
 openai.api_type = "azure"
 openai.api_base = "https://zhoushuai-test.openai.azure.com/"
@@ -49,6 +50,38 @@ def read_string_from_file(file_path):
 def total_cost(steps) -> float:
     return sum(float(value[2]) for value in steps)
 
+def compare_results(orig_sql, new_sql):
+    try:
+        connection = get_connection(autocommit=True)
+        cursor = connection.cursor()
+
+        # Measure original sql time.
+        start_time = time.time()
+        cursor.execute(orig_sql)
+        orig_result = cursor.fetchall()
+        end_time = time.time()
+        orig_exec_time = end_time - start_time
+
+        # Measure transformed sql time.
+        start_time = time.time()
+        cursor.execute(new_sql)
+        new_result = cursor.fetchall()
+        end_time = time.time()
+        new_exec_time = end_time - start_time
+
+        if (orig_result == new_result):
+            print(f"Results are same with original_sql exec time = {orig_exec_time} : new_sql exec time = {new_exec_time}")
+        else:
+            print("Results are different")
+            random_filename = os.path.join("/tmp/", str(uuid.uuid4()) + ".json")
+            with open(random_filename, "w") as json_file:
+                json.dump({"original result": orig_result, "new result": new_result}, json_file)
+            print(f"Results dumped to {random_filename}")
+    except mysql.connector.Error as e:
+        print(f"MySQL error: {e}")
+    finally:
+        connection.close()
+
 def get_cost(sql) -> float:
     try:
         connection = get_connection(autocommit=True)
@@ -56,9 +89,11 @@ def get_cost(sql) -> float:
         cursor.execute("explain format=verbose " + sql)
         result = cursor.fetchall()
         return total_cost(result)
-    except Exception as error:
-        print("No TiDB connection")
+    except mysql.connector.Error as e:
+        print(f"MySQL error: {e}")
         return -1.0
+    finally:
+        connection.close()
 
 
 def applicable_rewrites(rewrites, query_markers):
@@ -78,7 +113,7 @@ def applicable_rewrites(rewrites, query_markers):
                        break;
     return set(prompts)
 
-def apply_rewrite(sql, rw, skip_openAI):
+def apply_rewrite(sql, rw, skip_openAI,verify):
     prompt_value=rw+sql
     time.sleep(3)
     message=[{"role": "user", "content": prompt_value}]
@@ -105,8 +140,10 @@ def apply_rewrite(sql, rw, skip_openAI):
     original_cost = get_cost(sql)
     new_cost = get_cost(new_sql)
     print (" original cost = ", original_cost, "new_cost =", new_cost)
+    if (verify):
+        compare_results(sql, new_sql)
 
-def tune_one_query(query_file, rewrites):
+def tune_one_query(query_file, rewrites, verify):
         sql = read_string_from_file(query_file)
         sql = sql.replace('\n',' ')
         lib = ctypes.CDLL('./analyze.so')
@@ -114,9 +151,9 @@ def tune_one_query(query_file, rewrites):
         key_string = lib.analyze(sql.encode("utf-8"))
         keys = json.loads(key_string.decode("utf-8"))
         for rw in applicable_rewrites(rewrites,keys):
-            apply_rewrite(sql, rw, False)
+            apply_rewrite(sql, rw, False, verify)
 
-def apply_rewrites(test_dir, rewrites):
+def apply_rewrites(test_dir, rewrites, verify):
 
     query_dir = test_dir+"/queries"
 
@@ -139,7 +176,7 @@ def apply_rewrites(test_dir, rewrites):
         keys = json.loads(key_string.decode("utf-8"))
         for rw in applicable_rewrites(rewrites,keys):
             result_handle.write("rewrite: " + rw+"\n")
-            apply_rewrite(sql, rw, True)
+            apply_rewrite(sql, rw, True, verify)
 
         result_handle.close()
         print("\n diff for ",onefile, "\n")
@@ -148,10 +185,15 @@ def apply_rewrites(test_dir, rewrites):
 
 rewrites = read_prompts('prompts.txt')
 n = len(sys.argv)
+verify = False
+for arg in sys.argv[1:]:
+    if arg == '--verify':
+        verify = True
+        n -= 1
 if (n == 2 and str(sys.argv[1]) != "--h"):
-    apply_rewrites(sys.argv[1], rewrites)
+    apply_rewrites(sys.argv[1], rewrites, verify)
 elif (n == 3 and sys.argv[2] == '--singletest'):
-    tune_one_query(sys.argv[1], rewrites)
+    tune_one_query(sys.argv[1], rewrites, verify)
 else:
     print ("usage: python3 tuner.py <test-directory> or \n")
     print ("usage: python3 tuner.py test_file --singletest")

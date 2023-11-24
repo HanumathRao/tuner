@@ -13,7 +13,7 @@ TiDB use case (rewrite through tuner wirth better actual performance)           
 MySQL use case (rewrite through tuner wirth better actual performance)                     fixed
 SQL extraction from openAI is clunky and we need a better response back                    open
 Current code for costing new SQL only works for single SQL rewrite and
-        does not handle multi step rewrite that involves creating temp tables.             open
+        does not handle multi step rewrite that involves creating temp tables.             fixed (with latest prompt update this is no more an issue).
 Improve results that has temp table to use CTE instead. 
         Something like "can you convert the following temp table SQL using
         common table expressions:
