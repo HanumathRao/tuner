@@ -8,6 +8,7 @@ import ctypes
 import json
 import sys
 import time
+import argparse
 
 openai.api_type = "azure"
 openai.api_base = "https://zhoushuai-test.openai.azure.com/"
@@ -153,7 +154,7 @@ def tune_one_query(query_file, rewrites, verify):
         for rw in applicable_rewrites(rewrites,keys):
             apply_rewrite(sql, rw, False, verify)
 
-def apply_rewrites(test_dir, rewrites, verify):
+def apply_rewrites(test_dir, rewrites, verify, skip_open_ai):
 
     query_dir = test_dir+"/queries"
 
@@ -176,24 +177,41 @@ def apply_rewrites(test_dir, rewrites, verify):
         keys = json.loads(key_string.decode("utf-8"))
         for rw in applicable_rewrites(rewrites,keys):
             result_handle.write("rewrite: " + rw+"\n")
-            apply_rewrite(sql, rw, True, verify)
+            apply_rewrite(sql, rw, skip_open_ai, verify)
 
         result_handle.close()
         print("\n diff for ",onefile, "\n")
         os.system("diff "+result_file+" "+std_file)
         print("\n end of diff for ",onefile, "\n")
 
-rewrites = read_prompts('prompts.txt')
-n = len(sys.argv)
-verify = False
-for arg in sys.argv[1:]:
-    if arg == '--verify':
-        verify = True
-        n -= 1
-if (n == 2 and str(sys.argv[1]) != "--h"):
-    apply_rewrites(sys.argv[1], rewrites, verify)
-elif (n == 3 and sys.argv[2] == '--singletest'):
-    tune_one_query(sys.argv[1], rewrites, verify)
-else:
-    print ("usage: python3 tuner.py <test-directory> or \n")
-    print ("usage: python3 tuner.py test_file --singletest")
+
+def main():
+
+    parser = argparse.ArgumentParser(description='Database tuner using LLM for optimizing queries.')
+
+    parser.add_argument('test_dir',  help='test queries directory')
+
+    parser.add_argument('--singletest', action='store_true', help='runs single test')
+    parser.add_argument('--verify', action='store_true', help='verifies results of the optimized query')
+    parser.add_argument('--skip', action='store_true', help='verifies results of the optimized query')
+
+    args = parser.parse_args()
+
+    # Access parsed arguments
+    verify = args.verify
+    singletest = args.singletest
+    test_dir = args.test_dir
+    skip = args.skip
+    rewrites = read_prompts('prompts.txt')
+
+    if singletest:
+        tune_one_query(sys.argv[1], rewrites, verify)
+    elif test_dir != "":
+        apply_rewrites(sys.argv[1], rewrites, verify, skip)
+    else:
+        print ("usage: python3 tuner.py <test-directory> or \n")
+        print ("usage: python3 tuner.py test_file --singletest")
+
+
+if __name__ == '__main__':
+    main()
