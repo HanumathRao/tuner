@@ -193,7 +193,7 @@ def main():
 
     parser.add_argument('--singletest', action='store_true', help='runs single test')
     parser.add_argument('--verify', action='store_true', help='verifies results of the optimized query')
-    parser.add_argument('--skip', action='store_true', help='verifies results of the optimized query')
+    parser.add_argument('--skip', action='store_true', help='skip optimization and just do rewrite/prompt matching')
 
     args = parser.parse_args()
 
