@@ -51,6 +51,14 @@ type typeAnalysis struct {
 
 func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 	switch nodeType := node.(type) {
+	case *ast.SubqueryExpr, *ast.ExistsSubqueryExpr:
+		return []string {"Join"}, true
+	case *ast.PatternInExpr:
+		if (nodeType.Sel != nil) {
+			return []string {"Join"}, true
+		} else {
+			return []string {"Filter"}, true
+		}
 	case *ast.AggregateFuncExpr:
 		if (nodeType.Distinct) {
 			return []string {"Aggregate","Distinct"}, true
@@ -135,8 +143,6 @@ func analyze_internal(sql string) string {
 	}
 
 	typeList := typeVisitor(astNode)
-	//fmt.Printf("typeList = ", typeList)
-	
 	var m = make(map[string]bool)
 	var a = []string{}
 
@@ -162,5 +168,6 @@ func main() {
 	}
 	sql := os.Args[1]
 
-	analyze_internal(sql)
+	result := analyze_internal(sql)
+        print("\n result = ", result)
 }

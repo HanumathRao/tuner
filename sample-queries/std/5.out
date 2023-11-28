@@ -1,3 +1,3 @@
 ["Filter","Aggregate","LeftJoin"]
-rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Show only rewritten SQL
-rewrite: Rewrite outer join to inner join in this query if it is correct to do so. Show only rewritten SQL
+rewrite: Rewrite outer join to inner join in this query if it is correct to do so. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
