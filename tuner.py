@@ -144,15 +144,15 @@ def apply_rewrite(sql, rw, skip_openAI,verify):
     if (verify):
         compare_results(sql, new_sql)
 
-def tune_one_query(query_file, rewrites, verify):
+def tune_one_query(query_file, rewrites, verify, skip_openAI):
         sql = read_string_from_file(query_file)
         sql = sql.replace('\n',' ')
         lib = ctypes.CDLL('./analyze.so')
         lib.analyze.restype = ctypes.c_char_p
-        key_string = lib.analyze(sql.encode("utf-8"))
+        key_string = lib.analyze(sql.encode("utf-8"), False)
         keys = json.loads(key_string.decode("utf-8"))
         for rw in applicable_rewrites(rewrites,keys):
-            apply_rewrite(sql, rw, False, verify)
+            apply_rewrite(sql, rw, skip_openAI, verify)
 
 def apply_rewrites(test_dir, rewrites, verify, skip_open_ai):
 
@@ -169,7 +169,7 @@ def apply_rewrites(test_dir, rewrites, verify, skip_open_ai):
         sql = sql.replace('\n',' ')
         lib = ctypes.CDLL('./analyze.so')
         lib.analyze.restype = ctypes.c_char_p
-        key_string = lib.analyze(sql.encode("utf-8"))
+        key_string = lib.analyze(sql.encode("utf-8"), False)
         result_file = test_dir+"/results/"+onefile+".out"
         std_file = test_dir+"/std/"+onefile+".out"
         result_handle = open(result_file, "w")
@@ -205,7 +205,7 @@ def main():
     rewrites = read_prompts('prompts.txt')
 
     if singletest:
-        tune_one_query(sys.argv[1], rewrites, verify)
+        tune_one_query(sys.argv[1], rewrites, verify, skip)
     elif test_dir != "":
         apply_rewrites(sys.argv[1], rewrites, verify, skip)
     else:

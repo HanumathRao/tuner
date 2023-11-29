@@ -1,4 +1,4 @@
 ["Filter","Aggregate","Join","GroupBy","OrderBy"]
-rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
-rewrite: Apply multi phase group by split optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
 rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+rewrite: Apply multi phase group by split optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
+rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION

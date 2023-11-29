@@ -35,9 +35,9 @@ def analyze_workload(cur):
         print("\n log_count = ", log_count.fetchall())
         lib = ctypes.CDLL('./analyze.so')
         lib.analyze.restype = ctypes.c_char_p
-        key_string = lib.analyze(insert_statement.encode("utf-8"))
+        key_string = lib.analyze(insert_statement.encode("utf-8"), True)
         keys = json.loads(key_string.decode("utf-8"))
-        print("\n keys = ", keys[0], key_string)
+        print("\n keys = ", keys[0], key_string, ",join_count = ", 0)
 
 def main():
     parser = argparse.ArgumentParser(description='Workload analysis.')

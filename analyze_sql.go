@@ -54,9 +54,7 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 	case *ast.SubqueryExpr, *ast.ExistsSubqueryExpr:
 		return []string {"Join"}, true
 	case *ast.PatternInExpr:
-		if (nodeType.Sel != nil) {
-			return []string {"Join"}, true
-		} else {
+		if (nodeType.Sel == nil) {
 			return []string {"Filter"}, true
 		}
 	case *ast.AggregateFuncExpr:
@@ -134,8 +132,7 @@ func parse(sql string) (ast.StmtNode, error) {
 	return stmtNodes[0], nil
 }
 
-
-func analyze_internal(sql string) string {
+func analyze_internal(sql string, fulllist bool) (string) {
 	astNode, err := parse(sql)
 	if err != nil {
 		fmt.Printf("parse error: %v\n", err.Error())
@@ -147,7 +144,7 @@ func analyze_internal(sql string) string {
 	var a = []string{}
 
 	for _, value := range typeList { 
-		if !m[value] {
+		if (!m[value] || fulllist) {
 			a = append(a, value)
 			m[value] = true
 		}
@@ -157,8 +154,9 @@ func analyze_internal(sql string) string {
 }
 
 //export analyze
-func analyze(sql *C.char) *C.char {
-	return C.CString(analyze_internal(C.GoString(sql)))
+func analyze(sql *C.char, fulllist bool) (*C.char ) {
+	keys := analyze_internal(C.GoString(sql), fulllist)
+	return C.CString(keys) 
 }
 
 func main() {
@@ -168,6 +166,6 @@ func main() {
 	}
 	sql := os.Args[1]
 
-	result := analyze_internal(sql)
+	result := analyze_internal(sql, true)
         print("\n result = ", result)
 }
