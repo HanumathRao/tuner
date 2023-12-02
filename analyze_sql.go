@@ -51,6 +51,18 @@ type typeAnalysis struct {
 
 func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 	switch nodeType := node.(type) {
+	case *ast.ShowStmt, *ast.SetStmt, *ast.ExplainForStmt, *ast.ExplainStmt, *ast.UseStmt,
+		*ast.BeginStmt, *ast.CommitStmt, *ast.SavepointStmt, *ast.ReleaseSavepointStmt,
+		*ast.RollbackStmt, *ast.CreateUserStmt, *ast.SetPwdStmt:
+		return []string {"System"}, true
+	case *ast.AnalyzeTableStmt:
+		return []string {"Analyze"}, true
+	case *ast.DeleteStmt:
+		return []string {"Delete"}, true
+	case *ast.UpdateStmt:
+		return []string {"Update"}, true
+	case *ast.InsertStmt:
+		return []string {"Insert"}, true
 	case *ast.SubqueryExpr, *ast.ExistsSubqueryExpr:
 		return []string {"Join"}, true
 	case *ast.PatternInExpr:
@@ -74,9 +86,9 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 		return []string {"GroupBy"}, true
 	case *ast.SelectStmt:
 		if (nodeType.AfterSetOperator != nil && (*nodeType.AfterSetOperator == ast.Union || *nodeType.AfterSetOperator == ast.UnionAll)) {
-			return []string {"Union"}, true
+			return []string {"Select","Union"}, true
 		}
-		markers := []string{}
+		markers := []string{"Select"}
 		if (nodeType.Where != nil) {
 			markers = append(markers, "Filter")
 		}
@@ -128,15 +140,18 @@ func parse(sql string) (ast.StmtNode, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	return stmtNodes[0], nil
+        // Not sure why we end up here with no error and no ast
+	if len(stmtNodes) == 0 {
+		return nil, nil
+	} else {
+		return stmtNodes[0], nil
+	}
 }
 
 func analyze_internal(sql string, fulllist bool) (string) {
 	astNode, err := parse(sql)
-	if err != nil {
-		fmt.Printf("parse error: %v\n", err.Error())
-		return ""
+	if (err != nil  || astNode == nil) {
+		return "[]"
 	}
 
 	typeList := typeVisitor(astNode)
