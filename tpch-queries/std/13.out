@@ -1,3 +1,3 @@
-["Aggregate","LeftJoin","GroupBy","OrderBy"]
+["Select","Aggregate","LeftJoin","GroupBy","OrderBy"]
 rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
 rewrite: Rewrite outer join to inner join in this query if it is correct to do so. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION

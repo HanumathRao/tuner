@@ -1,2 +1,2 @@
-["Union"]
+["Select","Union"]
 rewrite: Apply distinct pushdown optimization for the following query. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION
