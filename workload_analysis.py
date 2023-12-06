@@ -164,6 +164,46 @@ def read_vs_write_report(cur):
         print(f'{write:<35}', f'{write_freq:<15}', f'{write_total_time:<15}', f'{write_total_mem:<15}')
 
 
+def insert_select_vs_insert_values_report(cur):
+        report_cur = cur.execute("""
+            select query_type, frequency, total_query_time, total_mem  
+            from unique_queries
+            where query_markers like '%Insert%'
+        """)
+        one_row = report_cur.fetchone() 
+        if one_row is not None:
+            print("\n")
+            column1 = 'Query Type'
+            column2 = 'Frequency'
+            column3 = 'Total Time'
+            column4 = 'Total MB Memory'
+            insert_values = 'insert_values'
+            insert_select = 'insert_select'
+            insert_select_freq = 0
+            insert_select_total_time = 0.0
+            insert_select_total_mem = 0.0
+            insert_values_freq = 0
+            insert_values_total_time = 0.0
+            insert_values_total_mem = 0.0
+            print(f'{column1:<35}', f'{column2:<15}', f'{column3:<15}', f'{column4:<15}')
+        else:
+            return
+        while one_row is not None:
+            if (one_row[0] == 'INSERT_VALUES'):
+                insert_values_freq = insert_values_freq+one_row[1]
+                insert_values_total_time = insert_values_total_time+one_row[2]
+                insert_values_total_mem = insert_values_total_mem+one_row[3]
+            else:
+                insert_select_freq = insert_select_freq+one_row[1]
+                insert_select_total_time = insert_select_total_time+one_row[2]
+                insert_select_total_mem = insert_select_total_mem+one_row[3]
+            one_row = report_cur.fetchone() 
+        insert_values_total_time = math.ceil(insert_values_total_time)*100/100
+        insert_values_total_mem = math.ceil(insert_values_total_mem/1024.0/1024.0)*100/100
+        insert_select_total_time = math.ceil(insert_select_total_time)*100/100
+        insert_select_total_mem = math.ceil(insert_select_total_mem/1024.0/1024.0)*100/100
+        print(f'{insert_select:<35}', f'{insert_select_freq:<15}', f'{insert_select_total_time:<15}', f'{insert_select_total_mem:<15}')
+        print(f'{insert_values:<35}', f'{insert_values_freq:<15}', f'{insert_values_total_time:<15}', f'{insert_values_total_mem:<15}')
 def analyze_workload(con):
         con.create_function("analyzeOneQuery", 1, analyze_one_query)
         con.create_function("numberOfJoins", 1, number_of_joins)
@@ -210,6 +250,7 @@ def analyze_workload(con):
         report_by_query_resource(cur,'time')
         report_by_query_resource(cur,'memory')
         read_vs_write_report(cur)
+        insert_select_vs_insert_values_report(cur)
 
 def main():
     parser = argparse.ArgumentParser(description='Workload analysis.')
