@@ -1,2 +1,2 @@
-["Select","Filter","Join","Aggregate","OrderBy"]
+["Select","Filter","InnerJoin","Aggregate","OrderBy"]
 rewrite: Rewrite the following query by pushing down the single table predicates down to single table scan. Respond with just rewritten sql and no explanation. If it is already optimized respond with NO_OPTIMIZATION

@@ -13,7 +13,7 @@
       "type": "and",
       "operators": [
         "GroupBy",
-	"Join"
+	"InnerJoin"
       ],
       "enabled": "true"
     },

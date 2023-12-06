@@ -51,7 +51,9 @@ type typeAnalysis struct {
 
 func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 	switch nodeType := node.(type) {
-	case *ast.ShowStmt, *ast.SetStmt, *ast.ExplainForStmt, *ast.ExplainStmt, *ast.UseStmt,
+	case *ast.ExplainStmt, *ast.ExplainForStmt:
+		return []string {"Explain"}, true
+	case *ast.ShowStmt, *ast.SetStmt, *ast.UseStmt,
 		*ast.BeginStmt, *ast.CommitStmt, *ast.SavepointStmt, *ast.ReleaseSavepointStmt,
 		*ast.RollbackStmt, *ast.CreateUserStmt, *ast.SetPwdStmt:
 		return []string {"System"}, true
@@ -64,7 +66,7 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 	case *ast.InsertStmt:
 		return []string {"Insert"}, true
 	case *ast.SubqueryExpr, *ast.ExistsSubqueryExpr:
-		return []string {"Join"}, true
+		return []string {"InnerJoin"}, true
 	case *ast.PatternInExpr:
 		if (nodeType.Sel == nil) {
 			return []string {"Filter"}, true
@@ -106,7 +108,7 @@ func (v *typeAnalysis) analyzeTypes(node ast.Node) ([]string, bool)  {
 				case ast.RightJoin:
 					return []string {"RightJoin"}, true
 				default:
-					return []string {"Join"}, true
+					return []string {"InnerJoin"}, true
 			}
 		}
 	case *ast.HavingClause:
