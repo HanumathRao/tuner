@@ -151,7 +151,9 @@ def tune_one_query(query_file, rewrites, verify, skip_openAI):
         lib.analyze.restype = ctypes.c_char_p
         key_string = lib.analyze(sql.encode("utf-8"), False)
         keys = json.loads(key_string.decode("utf-8"))
-        for rw in applicable_rewrites(rewrites,keys):
+        applicable_rewrites_list = list(applicable_rewrites(rewrites,keys))
+        applicable_rewrites_list.sort()
+        for rw in applicable_rewrites_list:
             apply_rewrite(sql, rw, skip_openAI, verify)
 
 def apply_rewrites(test_dir, rewrites, verify, skip_open_ai):
@@ -175,7 +177,9 @@ def apply_rewrites(test_dir, rewrites, verify, skip_open_ai):
         result_handle = open(result_file, "w")
         result_handle.write(key_string.decode("utf-8")+"\n")
         keys = json.loads(key_string.decode("utf-8"))
-        for rw in applicable_rewrites(rewrites,keys):
+        applicable_rewrites_list = list(applicable_rewrites(rewrites,keys))
+        applicable_rewrites_list.sort()
+        for rw in applicable_rewrites_list:
             result_handle.write("rewrite: " + rw+"\n")
             apply_rewrite(sql, rw, skip_open_ai, verify)
 
