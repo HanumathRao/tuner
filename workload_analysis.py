@@ -105,7 +105,7 @@ def report_by_query_resource(cur, time_or_mem):
         while one_row is not None:
             total_query_resource = math.ceil(one_row[1]*100)/100
             if time_or_mem == 'memory':
-                total_query_resource = total_query_resource/1024.00/1024.00
+                total_query_resource = math.ceil(total_query_resource/1024.00/1024.00)/100*100
             print(f'{one_row[0]:<35}', f'{total_query_resource:<20}')
             one_row = report_by_query_resource_cur.fetchone() 
 
