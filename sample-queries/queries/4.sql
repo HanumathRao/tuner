@@ -1,3 +1,3 @@
-SELECT a FROM table1
+SELECT a FROM employee table1
 UNION
-SELECT b FROM table2
+SELECT b FROM employee table2
