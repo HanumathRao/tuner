@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Set the directory containing SQL files based on argument or current directory
+SQL_DIR="${1:-$(pwd)}"
+
+# Iterate over SQL files in the directory
+for sql_file in "$SQL_DIR"/replayer_queries/*.sql; do
+    if [ -f "$sql_file" ]; then
+        echo "Executing: $sql_file"
+        
+        # Run the MySQL command and capture the output
+        mysql tuner_db --host 127.0.0.1 --port 4000 -u root --verbose < "$sql_file" > "$sql_file".out
+
+        # Check if the MySQL command executed successfully
+        if [ $? -eq 0 ]; then
+            echo "Successfully executed $sql_file"
+
+            # Read the second line from the output file (assumes the second line is the file name)
+            zip_file=$(sed -n '2p' "$sql_file.out")
+            
+            if [ -n "$zip_file" ]; then
+                # Extract base name of the SQL file without extension
+                base_name=$(basename "$sql_file" .sql)
+
+                # Create the output file name with the same base name and .zip extension
+                zip_output_file="${base_name}.zip"
+
+                echo "Downloading file: $zip_file"
+                
+                # Use curl to download the zip file
+                curl "http://127.0.0.1:10080/plan_replayer/dump/$zip_file" -o debug/replayer/"$zip_output_file"
+                
+                # Check if the curl command was successful
+                if [ $? -eq 0 ]; then
+                    echo "File $zip_file downloaded successfully as $zip_output_file."
+                else
+                    echo "Error downloading $zip_file."
+                fi
+            else
+                echo "No file name found in $sql_file.out (second line is empty)."
+            fi
+        else
+            echo "Error executing $sql_file."
+        fi
+    fi
+done
+
