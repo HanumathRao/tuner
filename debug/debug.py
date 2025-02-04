@@ -31,7 +31,6 @@ def read_file_contents(file_name: str) -> str:
         return f"Error: {e}"
 
 def apply_one_analysis(prompt_value, openai):
-    print(prompt_value)
     message = [{"role": "user", "content": prompt_value}]
     response = openai.ChatCompletion.create(engine="test-gpt-4",
                                             messages=message,
